@@ -7,10 +7,12 @@ output: html_document
 
 HT 
 dataset: fe1yag (lags delta 1, aguinaldo, payroll normalizado)
+equivale a fe1 (porque aguinaldo y payroll son sobre 202106)
 menos hiperparámetros
 train 1,2,3
 0.2
-50 iter
+35 iter
+AUC = 0.9472
 
 final train 1, 2, 3
 dataset: fe1yag (lags delta 1, aguinaldo, payroll normalizado
@@ -730,7 +732,7 @@ clientes que tuvieron payroll en 04 y 06, tienen al menos 1 ctrxpayroll en junio
 
 ## columnas normalizadas
 
-los saldos normalizados representan cuánto tendrían en sus cuentas si hubieran mantenido el nivel de mayo. Se calcula restando del saldo de junio el delta positivo respecto a mayo (pmax(saldo_junio - saldo_mayo, 0)), asumiendo que ese incremento corresponde al aguinaldo depositado y no gastado inmediatamente. Para clientes sin aguinaldo o en otros meses, los saldos normalizados son idénticos a los originales.
+mpayroll normalizado representa cuánto tendrían en sus cuentas si hubieran mantenido el nivel de mayo. Se calcula restando del saldo de junio el delta positivo respecto a mayo (pmax(saldo_junio - saldo_mayo, 0)), asumiendo que ese incremento corresponde al aguinaldo depositado y no gastado inmediatamente. Para clientes sin aguinaldo o en otros meses, los saldos normalizados son idénticos a los originales. Y le sumé 3% inflación.
 
 
 ```{r}
@@ -942,7 +944,7 @@ require("mlrMBO")
 
 ```{r chunk31}
 PARAM <- list()
-PARAM$experimento <- 9008
+PARAM$experimento <- 9006
 
 PARAM$semilla_primigenia <- 999199
 PARAM$semillas <- c(999199, 999499, 999599, 999959, 999979
@@ -1204,18 +1206,21 @@ cat("Directorio de trabajo:", getwd(), "\n")
 
 ## carga dataset
 ```{r chunk43}
-# # lectura del dataset
+
 # # dataset <- fread("/content/datasets/competencia_01.csv.gz", stringsAsFactors= TRUE)
-# dataset <- fread("C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/datos/competencia_01.csv.gz", stringsAsFactors= TRUE)
+
+dataset <- fread("C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/competencia_01_fe1yag.csv.gz", stringsAsFactors= TRUE)
 
 # dataset <- fread("/content/buckets/b1/datasets/competencia_01_fe.csv.gz", stringsAsFactors= TRUE)
 
 #Rstudio VM
-dataset <- fread("~/datasets/competencia_01_fe1yag.csv.gz", stringsAsFactors= TRUE)
+# dataset <- fread("~/datasets/competencia_01_fe1yag.csv.gz", stringsAsFactors= TRUE)
 
 # #para VM no acepta gz
 # # dataset <- fread("/content/datasets/competencia_01_fe.csv", stringsAsFactors= TRUE)
+
 # fwrite(dataset, file = "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/datos/competencia_01_fe.csv")
+
 # dataset <- fread("C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/datos/competencia_01_fe.csv", stringsAsFactors= TRUE)
 
 ```
@@ -1530,24 +1535,24 @@ Construyo el modelo final, que es uno solo, no hace ningun tipo de particion < t
 ## carpeta experimento 
 ```{r chunk64}
 
-setwd("/content/buckets/b1/exp")
-experimento <- paste0("exp", PARAM$experimento)
-dir.create(experimento, showWarnings= FALSE)
-setwd( paste0("/content/buckets/b1/exp/", experimento ))
-
-# # RStudio
-# dir_base <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos"
-# 
-# # Crear directorio base si no existe
-# dir.create(dir_base, showWarnings = FALSE, recursive = TRUE)
-# 
-# # Crear directorio del experimento
+# setwd("/content/buckets/b1/exp")
 # experimento <- paste0("exp", PARAM$experimento)
-# dir_experimento <- file.path(dir_base, experimento)
-# dir.create(dir_experimento, showWarnings = FALSE)
-# 
-# # Cambiar al directorio del experimento
-# setwd(dir_experimento)
+# dir.create(experimento, showWarnings= FALSE)
+# setwd( paste0("/content/buckets/b1/exp/", experimento ))
+
+# RStudio
+dir_base <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos"
+
+# Crear directorio base si no existe
+dir.create(dir_base, showWarnings = FALSE, recursive = TRUE)
+
+# Crear directorio del experimento
+experimento <- paste0("exp", PARAM$experimento)
+dir_experimento <- file.path(dir_base, experimento)
+dir.create(dir_experimento, showWarnings = FALSE)
+
+# Cambiar al directorio del experimento
+setwd(dir_experimento)
 
 # Verificar
 cat("Directorio de trabajo:", getwd(), "\n")
@@ -1560,9 +1565,9 @@ Aqui esta la gran decision de en qué meses hago el Final Training
 ```{r chunk65}
 # # lectura del dataset
 # # dataset <- fread("/content/buckets/b1/datasets/competencia_01.csv.gz", stringsAsFactors= TRUE)
-# dataset <- fread("C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/resultados/datasets/competencia_01.csv.gz", stringsAsFactors= TRUE)
+dataset <- fread("C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/competencia_01_fe1yag.csv.gz", stringsAsFactors= TRUE)
 
-dataset <- fread("~/datasets/competencia_01_fe1.csv.gz", stringsAsFactors= TRUE)
+# dataset <- fread("~/datasets/competencia_01_fe1.csv.gz", stringsAsFactors= TRUE)
 
 
 ```
@@ -1572,6 +1577,7 @@ dataset <- fread("~/datasets/competencia_01_fe1.csv.gz", stringsAsFactors= TRUE)
 cat("VERIFICACIÓN POST-CARGA\n\n")
 
 #columnas 459 (fe1)
+#columnas 462 (fe1yag)
 
 cat("Dimensiones totales:", dim(dataset), "\n\n")
 
@@ -1686,6 +1692,19 @@ PARAM$lgbm$param_fijos <-  list(
   num_leaves= 750,
   min_data_in_leaf= 5000
 )
+```
+
+```{r}
+# EXP HT 9006 (en colab) AUC = 0.9472
+
+PARAM$out$lgbm$mejores_hiperparametros <- list(
+  num_iterations = 2610,
+  learning_rate = 0.0219,
+  feature_fraction = 0.61,
+  num_leaves = 455,
+  min_data_in_leaf = 4
+)
+  
 ```
 
 ```{r chunk73}
@@ -1843,21 +1862,21 @@ cat("\n=== Ensamble de", length(PARAM$semillas), "modelos completado ===\n")
 # lgb.save(modelo_final, "modelo.txt" )
 
 
-# # Grabo todos los modelos del ensamble
-# for(i in 1:length(PARAM$semillas)) {
-#   ruta_completa <- file.path(dir_experimento, paste0("modelo_seed_", PARAM$semillas[i], ".txt"))
-#   lgb.save(modelos_ensemble[[i]], ruta_completa)
-#   cat("Guardado en:", ruta_completa, "\n")
-# }
-
-# para VM
+# Grabo todos los modelos del ensamble
 for(i in 1:length(PARAM$semillas)) {
-  lgb.save(modelos_ensemble[[i]], paste0("modelo_seed_", PARAM$semillas[i], ".txt"))
+  ruta_completa <- file.path(dir_experimento, paste0("modelo_seed_", PARAM$semillas[i], ".txt"))
+  lgb.save(modelos_ensemble[[i]], ruta_completa)
+  cat("Guardado en:", ruta_completa, "\n")
 }
-cat("\nTodos los modelos guardados en disco\n")
-
-
-cat("\nTodos los modelos guardados en disco\n")
+# 
+# # para VM
+# for(i in 1:length(PARAM$semillas)) {
+#   lgb.save(modelos_ensemble[[i]], paste0("modelo_seed_", PARAM$semillas[i], ".txt"))
+# }
+# cat("\nTodos los modelos guardados en disco\n")
+# 
+# 
+# cat("\nTodos los modelos guardados en disco\n")
 ```
 
 
@@ -1869,20 +1888,20 @@ cat("\nTodos los modelos guardados en disco\n")
 
 tb_importancia <- as.data.table(lgb.importance(modelos_ensemble[[1]]))
 
-# #para Rstudio local
-# ruta_importancia <- file.path(dir_experimento, "impo.txt")
-# fwrite(tb_importancia,
-#   file = ruta_importancia,
-#   sep = "\t"
-# )
-
-# # para VM
+#para Rstudio local
+ruta_importancia <- file.path(dir_experimento, "impo.txt")
 fwrite(tb_importancia,
-  file = "impo.txt",
+  file = ruta_importancia,
   sep = "\t"
 )
 
-cat("Importancia guardada en:", ruta_importancia, "\n")
+# # # para VM
+# fwrite(tb_importancia,
+#   file = "impo.txt",
+#   sep = "\t"
+# )
+
+
 
 ```
 
@@ -1917,20 +1936,19 @@ p <- ggplot(tb_importancia_top, aes(x = reorder(Feature, Gain), y = Gain)) +
 # Mostrar gráfico
 print(p)
 
-# # para Rstudio
-# ruta_grafico <- file.path(dir_experimento, 
-#                           paste0("feature_importance_ggplot_exp_", PARAM$experimento, ".png"))
-# ggsave(ruta_grafico, p, width = 12, height = 8, dpi = 300)
+# para Rstudio
+ruta_grafico <- file.path(dir_experimento,
+                          paste0("feature_importance_ggplot_exp_", PARAM$experimento, ".png"))
+ggsave(ruta_grafico, p, width = 12, height = 8, dpi = 300)
 
 
-# para VM
+# # para VM
+# 
+# ggsave("feature_importance_ggplot_exp_", PARAM$experimento, ".png"), p, width = 12, height = 8, dpi = 300)
+# 
+# cat("\nGráfico guardado como: feature_importance_ggplot_exp_", PARAM$experimento, ".png\n")
+# 
 
-ggsave("feature_importance_ggplot_exp_", PARAM$experimento, ".png"), p, width = 12, height = 8, dpi = 300)
-
-cat("\nGráfico guardado como: feature_importance_ggplot_exp_", PARAM$experimento, ".png\n")
-
-
-cat("\nGráfico guardado en:", ruta_grafico, "\n")
 ```
 
 ```{r chunk84}
@@ -1940,25 +1958,24 @@ cat("\nGráfico guardado en:", ruta_grafico, "\n")
 lgb.plot.importance(tb_importancia, top_n = 20, measure = "Gain")
 title(main = paste0("Feature Importance - EXP ", PARAM$experimento), line = 0.5)
 
-# 2. Guardar en archivo
+# Guardar en archivo
 
-# # para Rstudio
-# ruta_lgb <- file.path(dir_experimento, 
-#                       paste0("feature_importance_lgb_exp_", PARAM$experimento, ".png"))
-# png(ruta_lgb, width = 800, height = 600)
+# para Rstudio
+ruta_lgb <- file.path(dir_experimento,
+                      paste0("feature_importance_lgb_exp_", PARAM$experimento, ".png"))
+png(ruta_lgb, width = 800, height = 600)
+lgb.plot.importance(tb_importancia, top_n = 20, measure = "Gain")
+title(main = paste0("Feature Importance - EXP ", PARAM$experimento), line = 0.5)
+dev.off()
+# 
+# # para VM
+# 
+# png(paste0("feature_importance_lgb_exp_", PARAM$experimento, ".png"), width = 800, height = 600)
 # lgb.plot.importance(tb_importancia, top_n = 20, measure = "Gain")
 # title(main = paste0("Feature Importance - EXP ", PARAM$experimento), line = 0.5)
 # dev.off()
 
-# para VM
 
-png(paste0("feature_importance_lgb_exp_", PARAM$experimento, ".png"), width = 800, height = 600)
-lgb.plot.importance(tb_importancia, top_n = 20, measure = "Gain")
-title(main = paste0("Feature Importance - EXP ", PARAM$experimento), line = 0.5)
-dev.off()
-
-
-cat("\nGráfico guardado en:", ruta_lgb, "\n")
 ```
 
 ## Scoring
@@ -2012,20 +2029,19 @@ length(PARAM$semillas), "modelos\n")
 tb_prediccion <- dfuture[, list(numero_de_cliente, foto_mes)]
 tb_prediccion[, prob := prediccion]
 
-# # para rstudio
-# ruta_prediccion <- file.path(dir_experimento, "prediccion.txt")
-# fwrite(tb_prediccion,
-#   file = ruta_prediccion,
-#   sep = "\t"
-# )
-
-# para VM
+# para rstudio
+ruta_prediccion <- file.path(dir_experimento, "prediccion.txt")
 fwrite(tb_prediccion,
-  file = "prediccion.txt",
+  file = ruta_prediccion,
   sep = "\t"
 )
 
-cat("Predicción guardada en:", ruta_prediccion, "\n")
+# # para VM
+# fwrite(tb_prediccion,
+#   file = "prediccion.txt",
+#   sep = "\t"
+# )
+
 ```
 
 ```{r chunk88}
@@ -2045,41 +2061,19 @@ print(paste("'202106' tiene", filas202106, "filas."))
 ```{r chunk89}
 # genero archivos con los  "envios" mejores
 
-# # Para Rstudio
-# 
-# # ordeno por probabilidad descendente
-# setorder(tb_prediccion, -prob)
-# dir_kaggle <- file.path(dir_experimento, "kaggle")
-# dir.create(dir_kaggle, showWarnings = FALSE, recursive = TRUE)
-# 
-# for (envios in PARAM$cortes) {
-#   tb_prediccion[, Predicted := 0L]
-#   tb_prediccion[1:envios, Predicted := 1L]
-#   
-#   # Usar ruta completa con file.path
-#   archivo_kaggle <- file.path(dir_kaggle, paste0("KA", PARAM$experimento, "_", envios, ".csv"))
-#   
-#   fwrite(tb_prediccion[, list(numero_de_cliente, Predicted)],
-#     file = archivo_kaggle,
-#     sep = ",",
-#     col.names = TRUE
-#   )
-#   
-#   cat("Generado:", basename(archivo_kaggle),
-#       " (", format(envios, big.mark = ","), "envíos)\n")
-# }
+# Para Rstudio
 
-# para VM
-
+# ordeno por probabilidad descendente
 setorder(tb_prediccion, -prob)
-
-dir.create("kaggle", showWarnings = FALSE)
+dir_kaggle <- file.path(dir_experimento, "kaggle")
+dir.create(dir_kaggle, showWarnings = FALSE, recursive = TRUE)
 
 for (envios in PARAM$cortes) {
   tb_prediccion[, Predicted := 0L]
   tb_prediccion[1:envios, Predicted := 1L]
 
-  archivo_kaggle <- paste0("./kaggle/KA", PARAM$experimento, "_", envios, ".csv")
+  # Usar ruta completa con file.path
+  archivo_kaggle <- file.path(dir_kaggle, paste0("KA", PARAM$experimento, "_", envios, ".csv"))
 
   fwrite(tb_prediccion[, list(numero_de_cliente, Predicted)],
     file = archivo_kaggle,
@@ -2087,8 +2081,29 @@ for (envios in PARAM$cortes) {
     col.names = TRUE
   )
 
-  cat("Generado:", basename(archivo_kaggle), "\n")
+  cat("Generado:", basename(archivo_kaggle),
+      " (", format(envios, big.mark = ","), "envíos)\n")
 }
+
+# # para VM
+# 
+# setorder(tb_prediccion, -prob)
+# 
+# dir.create("kaggle", showWarnings = FALSE)
+# 
+# for (envios in PARAM$cortes) {
+#   tb_prediccion[, Predicted := 0L]
+#   tb_prediccion[1:envios, Predicted := 1L]
+# 
+#   archivo_kaggle <- paste0("./kaggle/KA", PARAM$experimento, "_", envios, ".csv")
+# 
+#   fwrite(tb_prediccion[, list(numero_de_cliente, Predicted)],
+#     file = archivo_kaggle,
+#     sep = ",",
+#     col.names = TRUE
+#   )# 
+#   cat("Generado:", basename(archivo_kaggle), "\n")
+# }
 
 ```
 
@@ -2197,18 +2212,18 @@ length(PARAM$semillas), "modelos \n")
 tb_prediccion_false_future <- false_future[, list(numero_de_cliente, foto_mes)]
 tb_prediccion_false_future[, prob := prediccion_false_future]
 
-# # para Rstudio
-# ruta_prediccion_ff <- file.path(dir_experimento, "prediccion_false_future.txt")
-# fwrite(tb_prediccion_false_future,
-#   file = ruta_prediccion_ff,
-#   sep = "\t"
-# )
-
-# para VM
+# para Rstudio
+ruta_prediccion_ff <- file.path(dir_experimento, "prediccion_false_future.txt")
 fwrite(tb_prediccion_false_future,
-  file = "prediccion_false_future.txt",
+  file = ruta_prediccion_ff,
   sep = "\t"
 )
+# 
+# # para VM
+# fwrite(tb_prediccion_false_future,
+#   file = "prediccion_false_future.txt",
+#   sep = "\t"
+# )
 
 cat("Predicción false_future guardada en:", ruta_prediccion_ff, "\n")
 
@@ -2296,30 +2311,30 @@ p <- ggplot(resultados_ganancia, aes(x = envios, y = ganancia_total)) +
 
 print(p)
 # 
-# # para Rstudio
-# ruta_curva <- file.path(dir_experimento, 
-#                         paste0("curva_ganancia_exp_", PARAM$experimento, ".png"))
-# ggsave(ruta_curva, p, width = 10, height = 6, dpi = 300)
+# para Rstudio
+ruta_curva <- file.path(dir_experimento,
+                        paste0("curva_ganancia_exp_", PARAM$experimento, ".png"))
+ggsave(ruta_curva, p, width = 10, height = 6, dpi = 300)
 
-# para VM
-ggsave("curva_ganancia_exp_", PARAM$experimento, ".png"), p, width = 10, height = 6, dpi = 300)
-cat("\nGráfico guardado\n")
-
-
-cat("\nGráfico guardado en:", ruta_curva, "\n")
+# # para VM
+# ggsave("curva_ganancia_exp_", PARAM$experimento, ".png"), p, width = 10, height = 6, dpi = 300)
+# cat("\nGráfico guardado\n")
+# 
+# 
+# cat("\nGráfico guardado en:", ruta_curva, "\n")
 ```
 
 
 ```{r chunk104}
 
 
-# #para Rstudio
-# ruta_param <- file.path(dir_experimento, "PARAM.yml")
-# write_yaml(PARAM, file = ruta_param)
-# cat("PARAM guardado en:", ruta_param, "\n")
+#para Rstudio
+ruta_param <- file.path(dir_experimento, "PARAM.yml")
+write_yaml(PARAM, file = ruta_param)
+cat("PARAM guardado en:", ruta_param, "\n")
 
 # para VM
-write_yaml(PARAM, file = "PARAM.yml")
+# write_yaml(PARAM, file = "PARAM.yml")
 
 ```
 
@@ -2338,44 +2353,5 @@ print(paste("'202106' tiene", filas202106, "filas."))
 
 ```{r chunk106}
 format(Sys.time(), "%a %b %d %X %Y")
-```
-
-
-```{r}
-# Crear ranking percentil -1 a 1 para mcaja_ahorro
-
-dataset[, mcaja_ahorro_rank := {
-  
-  # Separar positivos y negativos
-  positivos <- .SD[mcaja_ahorro > 0, mcaja_ahorro]
-  negativos <- .SD[mcaja_ahorro < 0, mcaja_ahorro]
-  ceros <- .SD[mcaja_ahorro == 0, mcaja_ahorro]
-  
-  # Calcular percentiles
-  rank_pos <- frank(positivos, ties.method = "average") / length(positivos)
-  rank_neg <- -frank(-negativos, ties.method = "average") / length(negativos)
-  rank_cero <- rep(0, length(ceros))
-  
-  # Asignar según el valor original
-  resultado <- numeric(.N)
-  resultado[mcaja_ahorro > 0] <- rank_pos
-  resultado[mcaja_ahorro < 0] <- rank_neg
-  resultado[mcaja_ahorro == 0] <- rank_cero
-  
-  resultado
-}]
-
-# Verificar
-cat("Rango del ranking:", range(dataset$mcaja_ahorro_rank, na.rm = TRUE), "\n")
-cat("Cantidad de 0s:", sum(dataset$mcaja_ahorro_rank == 0, na.rm = TRUE), "\n")
-cat("Cantidad de positivos:", sum(dataset$mcaja_ahorro_rank > 0, na.rm = TRUE), "\n")
-cat("Cantidad de negativos:", sum(dataset$mcaja_ahorro_rank < 0, na.rm = TRUE), "\n")
-
-# Visualizar distribución
-hist(dataset$mcaja_ahorro_rank, breaks = 50, main = "Distribución ranking mcaja_ahorro")
-```
-
-```{r}
-
 ```
 
