@@ -5,15 +5,15 @@ output: html_document
 
 9008
 
-HT 
+HT (9006)
 dataset: fe1 (lags delta 1)
 menos hiperparámetros
 train 1,2,3
 0.2
-50 iter
+auc 0.9472
 
 final train 1, 2, 3
-dataset: fe1 (lags delta 1)
+dataset: fe1 (lags delta 1) (esta es la diferencia versus 9006)
 5 semillas
 
 future 06
@@ -1527,7 +1527,7 @@ print(PARAM$out$lgbm$y)
 # PRODUCCION
 Construyo el modelo final, que es uno solo, no hace ningun tipo de particion < training, validation, testing>]
 
-## carpeta experimento 
+## carpeta EXP 
 ```{r chunk64}
 
 setwd("/content/buckets/b1/exp")
@@ -1685,6 +1685,18 @@ PARAM$lgbm$param_fijos <-  list(
   feature_fraction= 0.5,
   num_leaves= 750,
   min_data_in_leaf= 5000
+)
+```
+
+```{r}
+# EXP HT 9006 (en colab) AUC = 0.9472
+
+PARAM$out$lgbm$mejores_hiperparametros <- list(
+  num_iterations = 2610,
+  learning_rate = 0.0219,
+  feature_fraction = 0.61,
+  num_leaves = 455,
+  min_data_in_leaf = 4
 )
 ```
 
@@ -1882,8 +1894,6 @@ fwrite(tb_importancia,
   sep = "\t"
 )
 
-cat("Importancia guardada en:", ruta_importancia, "\n")
-
 ```
 
 ```{r chunk83}
@@ -1924,13 +1934,14 @@ print(p)
 
 
 # para VM
-
-ggsave("feature_importance_ggplot_exp_", PARAM$experimento, ".png"), p, width = 12, height = 8, dpi = 300)
+ggsave(paste0("feature_importance_ggplot_exp_", PARAM$experimento, ".png"), 
+       plot = p, 
+       width = 12, 
+       height = 8, 
+       dpi = 300)
 
 cat("\nGráfico guardado como: feature_importance_ggplot_exp_", PARAM$experimento, ".png\n")
 
-
-cat("\nGráfico guardado en:", ruta_grafico, "\n")
 ```
 
 ```{r chunk84}
@@ -1958,7 +1969,6 @@ title(main = paste0("Feature Importance - EXP ", PARAM$experimento), line = 0.5)
 dev.off()
 
 
-cat("\nGráfico guardado en:", ruta_lgb, "\n")
 ```
 
 ## Scoring
@@ -2025,7 +2035,10 @@ fwrite(tb_prediccion,
   sep = "\t"
 )
 
-cat("Predicción guardada en:", ruta_prediccion, "\n")
+```
+
+```{r}
+getwd()
 ```
 
 ```{r chunk88}
@@ -2210,7 +2223,6 @@ fwrite(tb_prediccion_false_future,
   sep = "\t"
 )
 
-cat("Predicción false_future guardada en:", ruta_prediccion_ff, "\n")
 
 ```
 
@@ -2302,11 +2314,15 @@ print(p)
 # ggsave(ruta_curva, p, width = 10, height = 6, dpi = 300)
 
 # para VM
-ggsave("curva_ganancia_exp_", PARAM$experimento, ".png"), p, width = 10, height = 6, dpi = 300)
+ggsave(paste0("curva_ganancia_exp_", PARAM$experimento, ".png"), 
+       plot = p, 
+       width = 10, 
+       height = 6, 
+       dpi = 300)
+
 cat("\nGráfico guardado\n")
 
 
-cat("\nGráfico guardado en:", ruta_curva, "\n")
 ```
 
 
@@ -2340,40 +2356,6 @@ print(paste("'202106' tiene", filas202106, "filas."))
 format(Sys.time(), "%a %b %d %X %Y")
 ```
 
-
-```{r}
-# Crear ranking percentil -1 a 1 para mcaja_ahorro
-
-dataset[, mcaja_ahorro_rank := {
-  
-  # Separar positivos y negativos
-  positivos <- .SD[mcaja_ahorro > 0, mcaja_ahorro]
-  negativos <- .SD[mcaja_ahorro < 0, mcaja_ahorro]
-  ceros <- .SD[mcaja_ahorro == 0, mcaja_ahorro]
-  
-  # Calcular percentiles
-  rank_pos <- frank(positivos, ties.method = "average") / length(positivos)
-  rank_neg <- -frank(-negativos, ties.method = "average") / length(negativos)
-  rank_cero <- rep(0, length(ceros))
-  
-  # Asignar según el valor original
-  resultado <- numeric(.N)
-  resultado[mcaja_ahorro > 0] <- rank_pos
-  resultado[mcaja_ahorro < 0] <- rank_neg
-  resultado[mcaja_ahorro == 0] <- rank_cero
-  
-  resultado
-}]
-
-# Verificar
-cat("Rango del ranking:", range(dataset$mcaja_ahorro_rank, na.rm = TRUE), "\n")
-cat("Cantidad de 0s:", sum(dataset$mcaja_ahorro_rank == 0, na.rm = TRUE), "\n")
-cat("Cantidad de positivos:", sum(dataset$mcaja_ahorro_rank > 0, na.rm = TRUE), "\n")
-cat("Cantidad de negativos:", sum(dataset$mcaja_ahorro_rank < 0, na.rm = TRUE), "\n")
-
-# Visualizar distribución
-hist(dataset$mcaja_ahorro_rank, breaks = 50, main = "Distribución ranking mcaja_ahorro")
-```
 
 ```{r}
 
