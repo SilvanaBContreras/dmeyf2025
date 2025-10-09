@@ -10,7 +10,7 @@ dataset: fe123rank
 11 hiperparámetros
 train 1,2,3
 0.2
-35 iter
+AUC ? 0,9447
 
 
 final train 1, 2, 3
@@ -20,6 +20,16 @@ dataset: fe123rankyagui
 future 06
 false future 04
 
+#INICIO
+
+
+```{r chunk29}
+# limpio la memoria
+rm(list=ls(all.names=TRUE)) # remove all objects
+gc(full=TRUE, verbose=FALSE) # garbage collection
+```
+
+### nro exp seeds
 ```{r}
 
 PARAM <- list()
@@ -27,17 +37,58 @@ PARAM$experimento <- 9012
 
 PARAM$semilla_primigenia <- 999199
 PARAM$semillas <- c(999199, 999499, 999599, 999959, 999979
-                    # 104729, 523987
+                    #, 104729, 523987
                     #, 7919,1299709, 2097593
 )
 
 ```
 
+```{r chunk22}
+getwd()
+```
+
+### carpeta exp para R
+```{r}
+
+# PARA R
+# Definir directorio base
+dir_base <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos"
+dir.create(dir_base, showWarnings = FALSE, recursive = TRUE)
+# # Crear directorio exp
+experimento <- paste0("exp", PARAM$experimento)
+dir_experimento <- file.path(dir_base, experimento)
+dir.create(dir_experimento, showWarnings = FALSE)
+
+setwd(dir_experimento)
+# # Verificar
+cat("Directorio de trabajo:", getwd(), "\n")
+
+```
 
 ```{r chunk22}
 getwd()
 ```
 
+### períodos
+```{r chunk33}
+# training y future
+PARAM$train <- c(202101, 202102, 202103)
+PARAM$train_final <- c(202102, 202101, 202103)
+PARAM$future <- c(202106)
+PARAM$false_future <- c(202104)
+PARAM$semilla_kaggle <- 314159
+PARAM$cortes <- seq(6000, 18000, by= 500)
+```
+
+### undersampling
+```{r chunk34}
+# un undersampling de 0.1  toma solo el 10% de los CONTINUA
+# undersampling de 1.0  implica tomar TODOS los datos
+
+PARAM$trainingstrategy$undersampling <- 0.2
+
+```
+  
 ### librerías
 ```{r chunk4}
 # cargo las librerias que necesito
@@ -86,7 +137,7 @@ dataset <- fread("C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 
 
 ```
 
-# Clase ternaria
+## Clase ternaria
 ```{r chunk1}
 
 #CLASE TERNARIA
@@ -157,8 +208,7 @@ dataset[, .N, list(foto_mes, clase_ternaria)]
 # DATA ENGINEERING
 
 
-# función lags y deltas. 
-seteé hasta 1
+## LAGS Y DELTAS
 
 ```{r chunk6}
 
@@ -167,9 +217,9 @@ generar_lags_y_deltas <- function(dt, variables, max_lags = NULL) {
   if(is.null(max_lags)) {
     periodos_totales <- length(unique(dt$foto_mes))
     max_periodos_cliente <- dt[, .N, by = numero_de_cliente][, max(N)]
-    #max_lags <- min(periodos_totales - 1, max_periodos_cliente - 1)  # TODOS LOS LAGS
+    max_lags <- min(periodos_totales - 1, max_periodos_cliente - 1)  # TODOS LOS LAGS
     
-    max_lags <- 1  # SOLAMENTE ORDEN 2
+    #max_lags <- 1  # SOLAMENTE ORDEN X
     cat("Max_lags calculado:", max_lags, "\n")
   }
   # Hacer copia y ordenar
@@ -627,35 +677,25 @@ dim(dataset)
 getwd()
 ```
 
-## fwrite competencia_01_fe1.csv.gz
+## fwrite competencia_01_fe
 dataset con clase ternaria y lags y deltas de orden 1 
 ```{r chunk23}
 # DESCARGAR DATASET ENGINEERED
 
-#guardo 1
+
 # fwrite( dataset,
-# fwrite( dataset,
-#     file =  "/content/datasets/competencia_01_fe12.csv.gz",
+#     file =  "/content/datasets/competencia_01_fe.csv.gz",
 #     sep = ","
 # )
-# 
-# #guardo 2
-# # fwrite(dataset,
-# fwrite(dataset,
-#        file = "/content/buckets/b1/datasets/competencia_01_fe12.csv.gz",
-#        sep = ",")
 
 # # Rstudio
+# setwd(dir_experimento)
 # fwrite(dataset,
 #        file = "competencia_01_fe1.csv.gz", 
 #        sep = ",")
 
 ```
 
-
-```{r}
-
-```
 
 ```{r}
 
@@ -717,7 +757,11 @@ dim(dataset)
 # Borrar todas las columnas que terminen en _rank
 cols_rank <- grep("_rank$", names(dataset), value = TRUE)
 print(cols_rank)
+
+
 ```
+
+
 ```{r}
 # dataset[, (cols_rank) := NULL]
 # cat("Columnas borradas:", length(cols_rank), "\n")
@@ -1166,6 +1210,8 @@ evolucion_cliente_ranking(dataset, "mcuentas_saldo")
 # evolucion_cliente_ranking(dataset, "mcuentas_saldo", min_meses = 10)
 
 ```
+
+
 ```{r}
 
 # Uso:
@@ -1251,38 +1297,27 @@ dataset[numero_de_cliente == cliente_ej,
 
 ##fwrite competencia_01_fe123_rank
 
-```{r}
- # PARA R
- # Definir directorio base
-dir_base <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos"
-dir.create(dir_base, showWarnings = FALSE, recursive = TRUE)
-# # Crear directorio exp
-experimento <- paste0("exp", PARAM$experimento)
-dir_experimento <- file.path(dir_base, experimento)
-dir.create(dir_experimento, showWarnings = FALSE)
-
-setwd(dir_experimento)
-# # Verificar
-cat("Directorio de trabajo:", getwd(), "\n")
-```
 
 ```{r}
 setwd(dir_experimento)
 getwd()
 fwrite(dataset, file = "competencia01_fe123_rank.csv.gz", sep = ",")
 
-
 ```
+
+
 ```{r}
 dim(dataset)
 ```
+
+
 ```{r}
 cols_rank <- grep("_rank$", names(dataset), value = TRUE)
 print(cols_rank)
 
 ```
 
-## recibio_aguinaldo
+## AGUINALDO
 clientes que tuvieron payroll en 04 y 06, tienen al menos 1 ctrxpayroll en junio y su mpayroll de junio es al menos 40% mayor que el de abril. (me quedan clientes con ctrxpayroll positivo sin asignar a la columna). Por lo tanto lo que identifico no son empleados, sino aproximo aguinaldos.
 ```{r}
 
@@ -1428,6 +1463,8 @@ dataset[foto_mes == 202106 & recibio_aguinaldo == 1,
 
 
 ```{r chunk67a}
+# + 3 columnas
+
 dim(dataset)
 ```
 
@@ -1435,20 +1472,16 @@ dim(dataset)
 ## fwrite competencia_01_fe123_rank_agui
 dataset con clase ternaria y lags y deltas de orden 1 y aguinaldo columnas normalizadas
 ```{r chunk23}
-# # GUARDAR DATASET con lags y deltas 1 y aguinaldo
-# 
-# #guardo 1
-# # fwrite( dataset,
-# # fwrite( dataset,
-# #     file =  "/content/datasets/competencia_01_fe1yag.csv.gz",
-# #     sep = ","
-# # )
-# # 
-# # #guardo 2
-# # # fwrite(dataset,
-# # fwrite(dataset,
-# #        file = "/content/buckets/b1/datasets/competencia_01_fe1yag.csv.gz",
-# #        sep = ",")
+
+# fwrite( dataset,
+#     file =  "/content/datasets/competencia_01_fe1yag.csv.gz",
+#     sep = ","
+# )
+#
+#
+# fwrite(dataset,
+#        file = "/content/buckets/b1/datasets/competencia_01_fe1yag.csv.gz",
+#        sep = ",")
 # 
 # Rstudio
 setwd(dir_experimento)
@@ -1460,7 +1493,7 @@ fwrite(dataset,
 
 ```
 
-# Optimizacion Hiperparámetros
+# OPTIMIZACION Hiperparámetros
 
 limpio el ambiente de R
 
@@ -1514,10 +1547,10 @@ PARAM$experimento <- 9012
 
 PARAM$semilla_primigenia <- 999199
 PARAM$semillas <- c(999199, 999499, 999599, 999959, 999979
-                    #, 104729, 523987
-                    #, 7919,1299709, 2097593
+                    , 104729, 523987
+                    , 7919,1299709, 2097593
 )
-# semillas <- c(999199, 999499, 999599, 999959, 999979, 104729, 523987, 7919,1299709, 2097593 )
+
 ```
 
 ```{r chunk32}
@@ -1600,6 +1633,7 @@ Aqui se definen los hiperparámetros de LightGBM que participan de la Bayesian O
 <br> si es un numero entero debe ir  makeIntegerParam
 <br> si es un numero real (con decimales) debe ir  makeNumericParam
 <br> es muy importante leer cuales son un lower y upper  permitidos y ademas razonables
+
 ```{r chunk36}
 # # Aqui se cargan los bordes de los hiperparametros de la BO
 # # INICIAL EXP HT4940
@@ -1645,13 +1679,29 @@ Aqui se definen los hiperparámetros de LightGBM que participan de la Bayesian O
 ```
 
 ```{r chunk38}
-# Estos recomienda Gustavo competencia 1
-
-# num_iterations,
-# learning_rate,
-# feature_fraction,
-# num_leaves,
-# min_data_in_leaf = 3
+# EXP NUEVOS BORDES a ESPERIMENTAR
+# 
+# PARAM$hyperparametertuning$hs <- makeParamSet(
+#   makeIntegerParam("num_iterations", lower= 500L, upper= 3000L), #acorté
+#   # o más con early stopping al entrenar
+#   makeNumericParam("learning_rate", lower= 0.005, upper= 0.2), #agrandé
+#   makeNumericParam("feature_fraction", lower= 0.2, upper= 0.99),
+#   makeIntegerParam("num_leaves", lower= 64L, upper= 1000L),
+#   makeIntegerParam("min_data_in_leaf", lower= 2L, upper= 5L),
+# 
+#   makeIntegerParam("max_depth", lower = 3, upper= 26),
+#   makeNumericParam("min_gain_to_split", lower = 0.0, upper = 0.4),
+#   #makeNumericParam("min_sum_hessian_in_leaf", lower = 0.001, upper = 0.1),
+#   makeNumericParam("lambda_l1", lower = 0.0, upper = 5.0),
+#   makeNumericParam("lambda_l2", lower = 0.0, upper = 10.0),
+#   max_bin= 31L, # lo debo dejar fijo, no participa de la BO
+# 
+#   makeNumericParam("bagging_fraction", lower = 0.2, upper = 0.99),
+#   makeIntegerParam("bagging_freq", lower = 1L, upper = 7L) #1 para que ocurra
+#   #makeNumericParam("pos_bagging_fraction", lower = 0.5, upper = 1.0),
+#   #makeNumericParam("neg_bagging_fraction", lower = 0.5, upper = 1.0),
+#   #makeNumericParam("scale_pos_weight", lower = 0.5, upper = 1.0),
+# )
 ```
 
 
@@ -1742,6 +1792,7 @@ PARAM$hyperparametertuning$iteraciones <- 50 # iteraciones bayesianas
 ```
 
 # carpeta HT
+
 ```{r chunk42}
 
 # carpeta de trabajo
@@ -1774,21 +1825,8 @@ setwd( paste0("/content/buckets/b1/exp/", experimento_folder ))
 ## carga dataset
 ```{r chunk43}
 
-# # dataset <- fread("/content/datasets/competencia_01.csv.gz", stringsAsFactors= TRUE)
-
 dataset <- fread("https://storage.googleapis.com/silvanacontreras76_bukito3/datasets/competencia01_fe123_rank.csv.gz", stringsAsFactors= TRUE)
 
-# dataset <- fread("/content/buckets/b1/datasets/competencia_01_fe.csv.gz", stringsAsFactors= TRUE)
-
-#Rstudio VM
-# dataset <- fread("~/datasets/competencia_01_fe1yag.csv.gz", stringsAsFactors= TRUE)
-
-# #para VM no acepta gz
-# # dataset <- fread("/content/datasets/competencia_01_fe.csv", stringsAsFactors= TRUE)
-
-# fwrite(dataset, file = "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/datos/competencia_01_fe.csv")
-
-# dataset <- fread("C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/datos/competencia_01_fe.csv", stringsAsFactors= TRUE)
 
 ```
 
@@ -1797,22 +1835,6 @@ dataset <- fread("https://storage.googleapis.com/silvanacontreras76_bukito3/data
 dim(dataset)
 ```
 
-```{r chunk45}
-# # Identificar columnas a eliminar
-# columnas_eliminar <- grep("lag2|lag3|lag4|lag5|delta2|delta3|delta4|delta5", names(dataset), value = TRUE)
-# 
-# # Visualizar las columnas que se van a eliminar
-# print(paste("Total de columnas a eliminar:", length(columnas_eliminar)))
-# print(columnas_eliminar)
-# 
-# # Eliminar las columnas
-# dataset[, (columnas_eliminar) := NULL]
-```
-
-```{r chunk46}
-
-dim(dataset)
-```
 
 ### dedataset_train foto mes y clase
 ```{r chunk47}
@@ -1909,13 +1931,13 @@ EstimarGanancia_AUC_lightgbm <- function(x) {
 ```{r chunk53}
 
 # Aqui comienza la configuracion de la Bayesian Optimization
-
 # en este archivo quedan la evolucion binaria de la BO
+
 #para VM
-# kbayesiana <- "bayesiana.RDATA"
+kbayesiana <- "bayesiana.RDATA"
 
 #para Rstudio
-kbayesiana <- file.path(dir_experimento, "bayesiana.RDATA")
+# kbayesiana <- file.path(dir_experimento, "bayesiana.RDATA")
 
 
 funcion_optimizar <- EstimarGanancia_AUC_lightgbm # la funcion que voy a maximizar
@@ -1977,7 +1999,7 @@ print(bayesiana_salida$x)  # Mejores hiperparámetros
 print(bayesiana_salida$y)  # Mejor AUC
 ```
 
-## levanto proceso si lo corté
+## levanto proceso hasta donde llegó (si lo corté)
 ```{r chunk56}
 
 # # levantar proceso interrumpido sin continuar
@@ -1994,9 +2016,9 @@ print(bayesiana_salida$y)  # Mejor AUC
 ## bayesiana_salida guarda
 ```{r chunk57}
 
-
 tb_bayesiana <- as.data.table(bayesiana_salida$opt.path)
 colnames( tb_bayesiana)
+
 ```
 
 ```{r chunk58}
@@ -2049,53 +2071,6 @@ print(PARAM$out$lgbm$mejores_hiperparametros)
 print(PARAM$out$lgbm$y)
 ```
 
-```{r chunk61}
-# EXP HT 4940
-# Envios=9000	 TOTAL=353600000  Public=335333333 Private=361428571
-  # mejores_hiperparametros:
-  #       num_iterations: 1085
-  #       learning_rate: 0.0100625
-  #       feature_fraction: 0.5160196
-  #       num_leaves: 1838
-  #       min_data_in_leaf: 1309
-```
-
-```{r chunk62}
-# EXP HT 4941
-
-# mejores_hiperparametros:
-#       num_iterations: 962
-#       learning_rate: 0.0144182
-#       feature_fraction: 0.6585625
-#       num_leaves: 365
-#       min_data_in_leaf: 726
-#       max_depth: 23
-#       min_gain_to_split: 0.0570174
-#       lambda_l1: 3.9986413
-#       lambda_l2: 1.7045828
-```
-
-```{r chunk63}
-# EXP HT 4942
-
-# num_iterations 4593
-# learning_rate 0.0427741
-# feature_fraction 0.3755552
-# num_leaves 1910
-# min_data_in_leaf 2195
-# min_gain_to_split 0.08282231
-# min_sum_hessian_in_leaf 0.08637694
-# lambda_l1 0.8836508
-# lambda_l2 4.757157
-# bagging_fraction 0.9806646
-# bagging_freq 1
-# scale_pos_weight 34.63562
-# drop_rate 0.08215384
-# max_drop 1
-# skip_drop 0.3466582
-# AUC 0.925877
-```
-
 # PRODUCCION
 Construyo el modelo final, que es uno solo, no hace ningun tipo de particion < training, validation, testing>]
 
@@ -2130,11 +2105,9 @@ cat("Directorio de trabajo:", getwd(), "\n")
 Aqui esta la gran decision de en qué meses hago el Final Training
 <br> debo utilizar los mejores hiperparámetros que encontré en la  optimización bayesiana
 ```{r chunk65}
-# # lectura del dataset
-# # dataset <- fread("/content/buckets/b1/datasets/competencia_01.csv.gz", stringsAsFactors= TRUE)
-dataset <- fread("C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/competencia_01_fe1yag.csv.gz", stringsAsFactors= TRUE)
 
-# dataset <- fread("~/datasets/competencia_01_fe1.csv.gz", stringsAsFactors= TRUE)
+
+dataset <- fread("https://storage.googleapis.com/silvanacontreras76_bukito3/datasets/competencia_01_fe123_rank_agui.csv.gz", stringsAsFactors= TRUE)
 
 
 ```
@@ -2165,23 +2138,27 @@ if(nrow(dataset[foto_mes == 202106]) != 164313) {
 }
 ```
 
-```{r chunk66}
-
-# # Identificar columnas a eliminar
-# columnas_eliminar <- grep("lag2|lag3|lag4|lag5|delta2|delta3|delta4|delta5", names(dataset), value = TRUE)
-# 
-# # Visualizar las columnas que se van a eliminar
-# print(paste("Total de columnas a eliminar:", length(columnas_eliminar)))
-# print(columnas_eliminar)
-# 
-# # Eliminar las columnas
-# dataset[, (columnas_eliminar) := NULL]
-```
-
 ```{r chunk67}
 dim(dataset)
 ```
+### períodos
+```{r chunk33}
 
+PARAM$train_final <- c(202102, 202101, 202103)
+PARAM$future <- c(202106)
+PARAM$false_future <- c(202104)
+PARAM$semilla_kaggle <- 314159
+PARAM$cortes <- seq(6000, 18000, by= 500)
+```
+
+### undersampling
+```{r chunk34}
+# un undersampling de 0.1  toma solo el 10% de los CONTINUA
+# undersampling de 1.0  implica tomar TODOS los datos
+
+PARAM$trainingstrategy$undersampling <- 0.2
+
+```
 
 ## clase01
 ```{r chunk68}
@@ -2189,10 +2166,18 @@ dim(dataset)
 dataset[, clase01 := ifelse(clase_ternaria %in% c("BAJA+1", "BAJA+2"), 1L, 0L)]
 ```
 
+```{r}
+dataset[, unique(foto_mes)]
+print(PARAM$train_final)
+
+```
+
 ##dataset_train final
 ```{r chunk69}
+
 dataset_train <- dataset[foto_mes %in% PARAM$train_final]
 dataset_train[,.N,clase_ternaria]
+
 ```
 
 ```{r chunk70}
@@ -2261,22 +2246,66 @@ PARAM$lgbm$param_fijos <-  list(
 )
 ```
 
-```{r}
-# EXP HT 9006 (en colab) AUC = 0.9472
 
-PARAM$out$lgbm$mejores_hiperparametros <- list(
-  num_iterations = 2610,
-  learning_rate = 0.0219,
-  feature_fraction = 0.61,
-  num_leaves = 455,
-  min_data_in_leaf = 4
-)
-  
+```{r chunk61}
+# EXP HT 4940
+# Envios=9000	 TOTAL=353600000  Public=335333333 Private=361428571
+
+# EXP 4940
+
+# mejores_hiperparametros_ht4940 <- list(
+#   num_iterations = 1085,
+#   learning_rate = 0.0100625,
+#   feature_fraction = 0.5160196,
+#   num_leaves = 1838,
+#   min_data_in_leaf = 1309
+# )
+
+# param_final <- modifyList(PARAM$lgbm$param_fijos, mejores_hiperparametros_ht4940)
+
 ```
+
+```{r chunk62}
+# EXP HT 4941
+
+# mejores_hiperparametros:
+#       num_iterations: 962
+#       learning_rate: 0.0144182
+#       feature_fraction: 0.6585625
+#       num_leaves: 365
+#       min_data_in_leaf: 726
+#       max_depth: 23
+#       min_gain_to_split: 0.0570174
+#       lambda_l1: 3.9986413
+#       lambda_l2: 1.7045828
+```
+
+```{r chunk63}
+# EXP HT 4942
+
+# num_iterations 4593
+# learning_rate 0.0427741
+# feature_fraction 0.3755552
+# num_leaves 1910
+# min_data_in_leaf 2195
+# min_gain_to_split 0.08282231
+# min_sum_hessian_in_leaf 0.08637694
+# lambda_l1 0.8836508
+# lambda_l2 4.757157
+# bagging_fraction 0.9806646
+# bagging_freq 1
+# scale_pos_weight 34.63562
+# drop_rate 0.08215384
+# max_drop 1
+# skip_drop 0.3466582
+# AUC 0.925877
+```
+
 
 ```{r chunk73}
 
 # # 9002 bayesiana AUC =  0.9441 
+
 # PARAM$out$lgbm$mejores_hiperparametros <- list(
 #   num_iterations = 4710,
 #   learning_rate = 0.00775,
@@ -2292,18 +2321,82 @@ PARAM$out$lgbm$mejores_hiperparametros <- list(
 # )
 ```
 
-```{r chunk74}
-# #celda agregada por sil 25/9 para probar mejores hiperparametros so far4940 con dataset_fe
+```{r}
+# 9002 bayesiana completa almost best AUC = 0.9448
 
-# mejores_hiperparametros_ht4940 <- list(
-#   num_iterations = 1085,
-#   learning_rate = 0.0100625,
-#   feature_fraction = 0.5160196,
-#   num_leaves = 1838,
-#   min_data_in_leaf = 1309
+# PARAM$out$lgbm$mejores_hiperparametros <- list(
+#    num_iterations = 2757,
+#    learning_rate = 0.0126,
+#    feature_fraction = 0.758,
+#    num_leaves = 282,
+#    min_data_in_leaf = 3,
+#    max_depth = 16,
+#    min_gain_to_split = 0.00226,
+#    lambda_l1 = 0.0381,
+#    lambda_l2 = 0.000909,
+#    bagging_fraction = 0.69,
+#    bagging_freq = 1
 # )
 
-# param_final <- modifyList(PARAM$lgbm$param_fijos, mejores_hiperparametros_ht4940)
+```
+
+```{r}
+
+# 9002 bayesiana completa BEST AUC = 0.9450
+
+# PARAM$out$lgbm$mejores_hiperparametros <- list(
+#    num_iterations = 3910,                  ### ATENCION!!!!
+#    learning_rate = 0.006639251,
+#    feature_fraction = 0.7971601,
+#    num_leaves = 248,
+#    min_data_in_leaf = 4,
+#    max_depth = 16,
+#    min_gain_to_split = 0.01307809,
+#    lambda_l1 = 0.02541107,
+#    lambda_l2 = 0.02196564,
+#    bagging_fraction = 0.6892582,
+#    bagging_freq = 4
+# )
+
+```
+
+
+```{r}
+# EXP HT 9006 (en colab) AUC = 0.9472
+# 
+# PARAM$out$lgbm$mejores_hiperparametros <- list(
+#   num_iterations = 2610,
+#   learning_rate = 0.0219,
+#   feature_fraction = 0.61,
+#   num_leaves = 455,
+#   min_data_in_leaf = 4
+# )
+  
+```
+
+```{r}
+
+# EXP 9012 (ranking y agui) provisorio hasta iter #26
+# AUC= 0,9447
+
+PARAM$out$lgbm$mejores_hiperparametros <- list(
+   num_iterations = 3158,
+   learning_rate = 0.0171,
+   feature_fraction = 0.904,
+   num_leaves = 372,
+   min_data_in_leaf = 3,  # Asumido, ya que no se especificó en el último set
+   max_depth = 12,
+   min_gain_to_split = 0.000113,
+   lambda_l1 = 0.015,
+   lambda_l2 = 7.11,
+   bagging_fraction = 0.949,
+   bagging_freq = 4
+)
+
+```
+
+```{r chunk74}
+
 ```
 
 ```{r chunk75}
@@ -2335,38 +2428,26 @@ param_normalizado
 
 ```{r}
 
-# 1. Dimensiones
 cat("1. DIMENSIONES:\n")
 cat("   Filas:", nrow(dtrain_final), "\n")
 cat("   Columnas:", ncol(dtrain_final), "\n\n")
 
-# 2. Verificar que corresponde a los períodos correctos
 cat("2. PERÍODOS DE ENTRENAMIENTO:\n")
 cat("   Configurados:", paste(PARAM$train_final, collapse = ", "), "\n")
 dataset_train_check <- dataset[foto_mes %in% PARAM$train_final]
 cat("   Filas en dataset para esos períodos:", nrow(dataset_train_check), "\n")
 cat("   ¿Coincide con dtrain_final?", nrow(dataset_train_check) == nrow(dtrain_final), "\n\n")
 
-# 3. Distribución de períodos
 cat("3. DISTRIBUCIÓN POR PERÍODO:\n")
 print(dataset_train_check[, .N, by = foto_mes])
 cat("\n")
 
-# 4. Balance de clases
 cat("4. BALANCE DE CLASES:\n")
 dataset_train_check[, clase01 := ifelse(clase_ternaria %in% c("BAJA+1", "BAJA+2"), 1L, 0L)]
 print(dataset_train_check[, .N, by = clase01])
 cat("   Proporción positivos:", 
     round(sum(dataset_train_check$clase01) / nrow(dataset_train_check) * 100, 2), "%\n\n")
 
-# 5. Verificar datos del modelo
-cat("5. CALIDAD DE DATOS:\n")
-data_check <- data.matrix(dataset_train_check[, campos_buenos, with = FALSE])
-cat("   NAs:", sum(is.na(data_check)), "\n")
-cat("   Infinitos:", sum(is.infinite(data_check)), "\n")
-cat("   Labels NAs:", sum(is.na(dataset_train_check$clase01)), "\n\n")
-
-# 6. Verificar future (donde vas a predecir)
 cat("6. FUTURO A PREDECIR:\n")
 dfuture <- dataset[foto_mes == 202106]
 cat("   Período:", PARAM$future, "\n")
@@ -2390,7 +2471,8 @@ Genero el modelo final, siempre sobre TODOS los datos de  final_train, sin hacer
 ```{r}
 # ENTRENO RENOVADO CON DIRECTORIO Y GUARDANDO DE A 1
 
-setwd( paste0("/content/buckets/b1/exp/", experimento ))
+# setwd( paste0("/content/buckets/b1/exp/", experimento ))
+setwd(dir_experimento)
 
 # Entreno ensamble mis semillas
 cat("Entrenando", length(PARAM$semillas), "modelos con diferentes semillas...\n")
@@ -2437,20 +2519,15 @@ cat("\n=== Ensamble de", length(PARAM$semillas), "modelos completado ===\n")
 
 tb_importancia <- as.data.table(lgb.importance(modelos_ensemble[[1]]))
 
-# #para Rstudio local
-# ruta_importancia <- file.path(dir_experimento, "impo.txt")
-# fwrite(tb_importancia,
-#   file = ruta_importancia,
-#   sep = "\t"
-# )
 
 # # para VM
+setwd(dir_experimento)
+
 fwrite(tb_importancia,
   file = "impo.txt",
   sep = "\t"
 )
 
-cat("Importancia guardada en:", ruta_importancia, "\n")
 
 ```
 
@@ -2485,17 +2562,12 @@ p <- ggplot(tb_importancia_top, aes(x = reorder(Feature, Gain), y = Gain)) +
 # Mostrar gráfico
 print(p)
 
-# # para Rstudio
-# ruta_grafico <- file.path(dir_experimento,
-#                           paste0("feature_importance_ggplot_exp_", PARAM$experimento, ".png"))
-# ggsave(ruta_grafico, p, width = 12, height = 8, dpi = 300)
-
-
 # para VM
 
-ggsave("feature_importance_ggplot_exp_", PARAM$experimento, ".png"), p, width = 12, height = 8, dpi = 300)
+setwd(dir_experimento)
 
-cat("\nGráfico guardado como: feature_importance_ggplot_exp_", PARAM$experimento, ".png\n")
+nombre_archivo <- paste0("feature_importance_ggplot_exp_", PARAM$experimento, ".png")
+ggsave(nombre_archivo, p, width = 12, height = 8, dpi = 300)
 
 
 ```
@@ -2503,21 +2575,11 @@ cat("\nGráfico guardado como: feature_importance_ggplot_exp_", PARAM$experiment
 ```{r chunk84}
 # Gráfico nativo de lightgbm
 
-# 1. Mostrar en pantalla
 lgb.plot.importance(tb_importancia, top_n = 20, measure = "Gain")
 title(main = paste0("Feature Importance - EXP ", PARAM$experimento), line = 0.5)
 
-# Guardar en archivo
-
-# # para Rstudio
-# ruta_lgb <- file.path(dir_experimento,
-#                       paste0("feature_importance_lgb_exp_", PARAM$experimento, ".png"))
-# png(ruta_lgb, width = 800, height = 600)
-# lgb.plot.importance(tb_importancia, top_n = 20, measure = "Gain")
-# title(main = paste0("Feature Importance - EXP ", PARAM$experimento), line = 0.5)
-# dev.off()
-# # 
-# para VM
+#guardar
+setwd(dir_experimento)
 
 png(paste0("feature_importance_lgb_exp_", PARAM$experimento, ".png"), width = 800, height = 600)
 lgb.plot.importance(tb_importancia, top_n = 20, measure = "Gain")
@@ -2578,12 +2640,8 @@ length(PARAM$semillas), "modelos\n")
 tb_prediccion <- dfuture[, list(numero_de_cliente, foto_mes)]
 tb_prediccion[, prob := prediccion]
 
-# # para rstudio
-# ruta_prediccion <- file.path(dir_experimento, "prediccion.txt")
-# fwrite(tb_prediccion,
-#   file = ruta_prediccion,
-#   sep = "\t"
-# )
+# guardar
+setwd(dir_experimento)
 
 # para VM
 fwrite(tb_prediccion,
@@ -2610,34 +2668,13 @@ print(paste("'202106' tiene", filas202106, "filas."))
 ```{r chunk89}
 # genero archivos con los  "envios" mejores
 
-# # Para Rstudio
-# 
-# # ordeno por probabilidad descendente
-# setorder(tb_prediccion, -prob)
-# dir_kaggle <- file.path(dir_experimento, "kaggle")
-# dir.create(dir_kaggle, showWarnings = FALSE, recursive = TRUE)
-# 
-# for (envios in PARAM$cortes) {
-#   tb_prediccion[, Predicted := 0L]
-#   tb_prediccion[1:envios, Predicted := 1L]
-# 
-#   # Usar ruta completa con file.path
-#   archivo_kaggle <- file.path(dir_kaggle, paste0("KA", PARAM$experimento, "_", envios, ".csv"))
-# 
-#   fwrite(tb_prediccion[, list(numero_de_cliente, Predicted)],
-#     file = archivo_kaggle,
-#     sep = ",",
-#     col.names = TRUE
-#   )
-# 
-#   cat("Generado:", basename(archivo_kaggle),
-#       " (", format(envios, big.mark = ","), "envíos)\n")
-# }
 
-# para VM
 
 setorder(tb_prediccion, -prob)
 
+setwd(dir_experimento) #para local R
+
+# para VM
 dir.create("kaggle", showWarnings = FALSE)
 
 for (envios in PARAM$cortes) {
@@ -2761,13 +2798,7 @@ length(PARAM$semillas), "modelos \n")
 tb_prediccion_false_future <- false_future[, list(numero_de_cliente, foto_mes)]
 tb_prediccion_false_future[, prob := prediccion_false_future]
 
-# # para Rstudio
-# ruta_prediccion_ff <- file.path(dir_experimento, "prediccion_false_future.txt")
-# fwrite(tb_prediccion_false_future,
-#   file = ruta_prediccion_ff,
-#   sep = "\t"
-# )
-# 
+setwd(dir_experimento)
 # para VM
 fwrite(tb_prediccion_false_future,
   file = "prediccion_false_future.txt",
@@ -2844,7 +2875,7 @@ for (envios in PARAM$cortes) {
     data.table(envios = envios, ganancia_total = res$total))
 }
 
-p <- ggplot(resultados_ganancia, aes(x = envios, y = ganancia_total)) +
+ptest <- ggplot(resultados_ganancia, aes(x = envios, y = ganancia_total)) +
   geom_line(color = "#2C7BB6", size = 1) +
   geom_point(color = "#2C7BB6", size = 2) +
   geom_hline(yintercept = 0, linetype = "solid", color = "gray50", alpha = 0.3) +
@@ -2857,29 +2888,24 @@ p <- ggplot(resultados_ganancia, aes(x = envios, y = ganancia_total)) +
   ) +
   theme_minimal()
 
-print(p)
-#
-# # para Rstudio
-# ruta_curva <- file.path(dir_experimento,
-#                         paste0("curva_ganancia_exp_", PARAM$experimento, ".png"))
-# ggsave(ruta_curva, p, width = 10, height = 6, dpi = 300)
+print(ptest)
+
+setwd(dir_experimento) #para Rstudio
 
 # para VM
-ggsave("curva_ganancia_exp_", PARAM$experimento, ".png"), p, width = 10, height = 6, dpi = 300)
-cat("\nGráfico guardado\n")
+
+nombre_archivo <- paste0("curva_ganancia_exp_", PARAM$experimento, ".png")
+ggsave(nombre_archivo, p, width = 10, height = 6, dpi = 300)
+
 
 ```
 
 
 ```{r chunk104}
 
+setwd(dir_experimento) #para R
 
-# #para Rstudio
-# ruta_param <- file.path(dir_experimento, "PARAM.yml")
-# write_yaml(PARAM, file = ruta_param)
-# cat("PARAM guardado en:", ruta_param, "\n")
-
-para VM
+#para VM
 write_yaml(PARAM, file = "PARAM.yml")
 
 ```
