@@ -2304,7 +2304,7 @@ PARAM$lgbm$param_fijos <-  list(
 
 ```{r chunk73}
 
-# # 9002 bayesiana AUC =  0.9441 
+# # 9002 (fe123) bayesiana frenada en #30. AUC =  0.9441 
 
 # PARAM$out$lgbm$mejores_hiperparametros <- list(
 #   num_iterations = 4710,
@@ -2322,7 +2322,7 @@ PARAM$lgbm$param_fijos <-  list(
 ```
 
 ```{r}
-# 9002 bayesiana completa almost best AUC = 0.9448
+# 9002 bayesiana completa #80. almost best AUC = 0.9448
 
 # PARAM$out$lgbm$mejores_hiperparametros <- list(
 #    num_iterations = 2757,
@@ -2342,7 +2342,7 @@ PARAM$lgbm$param_fijos <-  list(
 
 ```{r}
 
-# 9002 bayesiana completa BEST AUC = 0.9450
+# 9002 bayesiana completa #80. BEST AUC = 0.9450
 
 # PARAM$out$lgbm$mejores_hiperparametros <- list(
 #    num_iterations = 3910,                  ### ATENCION!!!!
@@ -2362,7 +2362,7 @@ PARAM$lgbm$param_fijos <-  list(
 
 
 ```{r}
-# EXP HT 9006 (en colab) AUC = 0.9472
+# EXP HT 9006 (en colab). es FE1. AUC = 0.9472
 # 
 # PARAM$out$lgbm$mejores_hiperparametros <- list(
 #   num_iterations = 2610,
@@ -2376,7 +2376,7 @@ PARAM$lgbm$param_fijos <-  list(
 
 ```{r}
 
-# EXP 9012 (ranking y agui) provisorio hasta iter #26
+# EXP 9012 (1,2,3, ranking y agui) provisorio hasta iter #26
 # AUC= 0,9447
 
 PARAM$out$lgbm$mejores_hiperparametros <- list(
