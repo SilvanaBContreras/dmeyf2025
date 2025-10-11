@@ -2571,20 +2571,20 @@ PARAM$lgbm$param_fijos <-  list(
 
 ```{r}
 
-# EXP 9016 #2 so far auc = 0.941
+# EXP 9016 #16 so far auc = 0.9417
 
 # PARAM$out$lgbm$mejores_hiperparametros <- list(
-#   num_iterations = 2216,
-#   learning_rate = 0.00974,
-#   feature_fraction = 0.56,
-#   num_leaves = 665,
+#   num_iterations = 2019,
+#   learning_rate = 0.00825,
+#   feature_fraction = 0.674,
+#   num_leaves = 200,
 #   min_data_in_leaf = 3,
-#   max_depth = 18,
-#   min_gain_to_split = 0.256,
-#   lambda_l1 = 0.933,
-#   lambda_l2 = 1.28,
-#   bagging_fraction = 0.744,
-#   bagging_freq = 4
+#   max_depth = 19,
+#   min_gain_to_split = 0.118,
+#   lambda_l1 = 0.441,
+#   lambda_l2 = 0.307,
+#   bagging_fraction = 0.597,
+#   bagging_freq = 3
 # )
 ```
 
