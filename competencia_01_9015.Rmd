@@ -1838,9 +1838,9 @@ Aqui se definen los hiperparámetros de LightGBM que participan de la Bayesian O
 # EXP 9015
 
 PARAM$hyperparametertuning$hs <- makeParamSet(
-  makeIntegerParam("num_iterations", lower= 900L, upper= 3100L), #acorté
+  makeIntegerParam("num_iterations", lower= 800L, upper= 4300L), #acorté
   # o más con early stopping al entrenar
-  makeNumericParam("learning_rate", lower= 0.009, upper= 0.2), #agrandé
+  makeNumericParam("learning_rate", lower= 0.006, upper= 0.15), #agrandé
   makeNumericParam("feature_fraction", lower= 0.2, upper= 0.8), #acorté
   makeIntegerParam("num_leaves", lower= 64L, upper= 1000L),
   #makeIntegerParam("min_data_in_leaf", lower= 2L, upper= 5L), fijo en 3
@@ -1942,7 +1942,7 @@ A mayor cantidad de hiperparámetros, se debe aumentar las iteraciones de la Bay
 # ht iteraciones
 ```{r chunk41}
 
-PARAM$hyperparametertuning$iteraciones <- 30 # iteraciones bayesianas
+PARAM$hyperparametertuning$iteraciones <- 35# iteraciones bayesianas
 
 ```
 
