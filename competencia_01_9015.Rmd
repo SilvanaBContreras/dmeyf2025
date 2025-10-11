@@ -2305,28 +2305,28 @@ PARAM$cortes <- seq(6000, 18000, by= 500)
 
 ## carpeta EXP 
 ```{r chunk64}
-
-setwd("/content/buckets/b1/exp")
-experimento <- paste0("exp", PARAM$experimento)
-dir.create(experimento, showWarnings= FALSE)
-setwd( paste0("/content/buckets/b1/exp/", experimento ))
-
-# # RStudio
-# dir_base <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos"
 # 
-# # Crear directorio base si no existe
-# dir.create(dir_base, showWarnings = FALSE, recursive = TRUE)
-# 
-# # Crear directorio del experimento
+# setwd("/content/buckets/b1/exp")
 # experimento <- paste0("exp", PARAM$experimento)
-# dir_experimento <- file.path(dir_base, experimento)
-# dir.create(dir_experimento, showWarnings = FALSE)
-# 
-# # Cambiar al directorio del experimento
-# setwd(dir_experimento)
-# 
-# # Verificar
-# cat("Directorio de trabajo:", getwd(), "\n")
+# dir.create(experimento, showWarnings= FALSE)
+# setwd( paste0("/content/buckets/b1/exp/", experimento ))
+
+# RStudio
+dir_base <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos"
+
+# Crear directorio base si no existe
+dir.create(dir_base, showWarnings = FALSE, recursive = TRUE)
+
+# Crear directorio del experimento
+experimento <- paste0("exp", PARAM$experimento)
+dir_experimento <- file.path(dir_base, experimento)
+dir.create(dir_experimento, showWarnings = FALSE)
+
+# Cambiar al directorio del experimento
+setwd(dir_experimento)
+
+# Verificar
+cat("Directorio de trabajo:", getwd(), "\n")
 ```
 
 ## Final Training Dataset
@@ -2640,7 +2640,22 @@ PARAM$out$lgbm$mejores_hiperparametros <- list(
 ```
 
 ```{r chunk74}
-#EXP 9015
+#EXP 9016 hasta iter 16 auc 0.9417
+
+
+# PARAM$out$lgbm$mejores_hiperparametros <- list(
+#   num_iterations = 2019,
+#   learning_rate = 0.00825,
+#   feature_fraction = 0.674,
+#   num_leaves = 200,
+#   min_data_in_leaf = 3,
+#   max_depth = 19,
+#   min_gain_to_split = 0.118,
+#   lambda_l1 = 0.441,
+#   lambda_l2 = 0.307,
+#   bagging_fraction = 0.597,
+#   bagging_freq = 3
+# )
 
 ```
 
@@ -2770,63 +2785,63 @@ cat("\n=== Ensamble de", length(PARAM$semillas), "modelos completado ===\n")
 
 ####retomo train si murió
 ```{r}
-# # REANUDACIÓN DEL ENTRENAMIENTO DE SEMILLAS FALTANTES
-# 
-# # Asegurarse de estar en el directorio correcto
-# setwd(dir_experimento)
-# 
-# # 1. IDENTIFICAR SEMILLAS YA ENTRENADAS
-# # Obtener los nombres de los archivos de modelos ya guardados
-# archivos_modelos <- list.files(pattern = "^modelo_seed_.*\\.txt$")
-# 
-# # Extraer las semillas de los nombres de archivo.
-# # Esto convierte, por ejemplo, "modelo_seed_271828.txt" a "271828" y luego a un número.
-# semillas_entrenadas <- as.numeric(gsub("modelo_seed_(.*)\\.txt", "\\1", archivos_modelos))
-# 
-# # 2. ENCONTRAR SEMILLAS FALTANTES
-# # Usar setdiff para encontrar las semillas que están en PARAM$semillas pero NO en semillas_entrenadas
-# semillas_faltantes <- setdiff(PARAM$semillas, semillas_entrenadas)
-# 
-# cat("Total de semillas a entrenar (original):", length(PARAM$semillas), "\n")
-# cat("Semillas ya entrenadas:", length(semillas_entrenadas), "\n")
-# cat("Semillas faltantes por entrenar:", length(semillas_faltantes), "\n")
-# if (length(semillas_faltantes) > 0) {
-#     cat("Semillas faltantes:", paste(semillas_faltantes, collapse = ", "), "\n")
-# } else {
-#     cat("¡Todo el ensamble ya fue entrenado y guardado!\n")
-# }
-# 
-# 
-# # 3. ENTRENAR SOLO LAS SEMILLAS FALTANTES
-# 
-# # Crear una lista auxiliar para el bucle de reanudación
-# semillas_a_procesar <- semillas_faltantes
-# 
-# # Entrenar un modelo solo por cada semilla faltante
-# for(semilla_actual in semillas_a_procesar) {
-#     cat("\n=== Retomando entrenamiento con semilla faltante:", semilla_actual, "===\n")
-# 
-#     set.seed(semilla_actual)
-#     param_normalizado$seed <- semilla_actual
-# 
-#     # Entrenar modelo (usando la semilla actual)
-#     modelo <- lgb.train(
-#         data = dtrain_final,
-#         param = param_normalizado
-#     )
-# 
-#     # Guardar modelo INMEDIATAMENTE
-#     nombre_archivo <- paste0("modelo_seed_", semilla_actual, ".txt")
-#     lgb.save(modelo, nombre_archivo)
-#     cat("Modelo guardado como:", nombre_archivo, "\n")
-# 
-#     # Nota: No lo guardamos en 'modelos_ensemble' porque esa lista suele ser para
-#     # usar en memoria. Aquí nos enfocamos solo en guardar el archivo faltante.
-# 
-#     cat("Modelo entrenado y guardado exitosamente\n")
-# }
-# 
-# cat("\n=== Proceso de reanudación completado ===\n")
+# REANUDACIÓN DEL ENTRENAMIENTO DE SEMILLAS FALTANTES
+
+# Asegurarse de estar en el directorio correcto
+setwd(dir_experimento)
+
+# 1. IDENTIFICAR SEMILLAS YA ENTRENADAS
+# Obtener los nombres de los archivos de modelos ya guardados
+archivos_modelos <- list.files(pattern = "^modelo_seed_.*\\.txt$")
+
+# Extraer las semillas de los nombres de archivo.
+# Esto convierte, por ejemplo, "modelo_seed_271828.txt" a "271828" y luego a un número.
+semillas_entrenadas <- as.numeric(gsub("modelo_seed_(.*)\\.txt", "\\1", archivos_modelos))
+
+# 2. ENCONTRAR SEMILLAS FALTANTES
+# Usar setdiff para encontrar las semillas que están en PARAM$semillas pero NO en semillas_entrenadas
+semillas_faltantes <- setdiff(PARAM$semillas, semillas_entrenadas)
+
+cat("Total de semillas a entrenar (original):", length(PARAM$semillas), "\n")
+cat("Semillas ya entrenadas:", length(semillas_entrenadas), "\n")
+cat("Semillas faltantes por entrenar:", length(semillas_faltantes), "\n")
+if (length(semillas_faltantes) > 0) {
+    cat("Semillas faltantes:", paste(semillas_faltantes, collapse = ", "), "\n")
+} else {
+    cat("¡Todo el ensamble ya fue entrenado y guardado!\n")
+}
+
+
+# 3. ENTRENAR SOLO LAS SEMILLAS FALTANTES
+
+# Crear una lista auxiliar para el bucle de reanudación
+semillas_a_procesar <- semillas_faltantes
+
+# Entrenar un modelo solo por cada semilla faltante
+for(semilla_actual in semillas_a_procesar) {
+    cat("\n=== Retomando entrenamiento con semilla faltante:", semilla_actual, "===\n")
+
+    set.seed(semilla_actual)
+    param_normalizado$seed <- semilla_actual
+
+    # Entrenar modelo (usando la semilla actual)
+    modelo <- lgb.train(
+        data = dtrain_final,
+        param = param_normalizado
+    )
+
+    # Guardar modelo INMEDIATAMENTE
+    nombre_archivo <- paste0("modelo_seed_", semilla_actual, ".txt")
+    lgb.save(modelo, nombre_archivo)
+    cat("Modelo guardado como:", nombre_archivo, "\n")
+
+    # Nota: No lo guardamos en 'modelos_ensemble' porque esa lista suele ser para
+    # usar en memoria. Aquí nos enfocamos solo en guardar el archivo faltante.
+
+    cat("Modelo entrenado y guardado exitosamente\n")
+}
+
+cat("\n=== Proceso de reanudación completado ===\n")
 ```
 
 
@@ -2840,7 +2855,7 @@ tb_importancia <- as.data.table(lgb.importance(modelos_ensemble[[1]]))
 
 
 # # para VM
-# setwd(dir_experimento)
+setwd(dir_experimento)
 
 fwrite(tb_importancia,
   file = "impo.txt",
@@ -2883,7 +2898,7 @@ print(p)
 
 # para VM
 
-# setwd(dir_experimento)
+setwd(dir_experimento)
 
 nombre_archivo <- paste0("feature_importance_ggplot_exp_", PARAM$experimento, ".png")
 ggsave(nombre_archivo, p, width = 12, height = 8, dpi = 300)
@@ -2898,7 +2913,7 @@ lgb.plot.importance(tb_importancia, top_n = 20, measure = "Gain")
 title(main = paste0("Feature Importance - EXP ", PARAM$experimento), line = 0.5)
 
 #guardar
-# setwd(dir_experimento)
+setwd(dir_experimento)
 
 png(paste0("feature_importance_lgb_exp_", PARAM$experimento, ".png"), width = 800, height = 600)
 lgb.plot.importance(tb_importancia, top_n = 20, measure = "Gain")
@@ -2924,35 +2939,63 @@ Aplico el modelo final a los datos del futuro
 
 ###cargo modelos desde otro lado
 ```{r}
-# # Cargar modelos guardados desde el directorio de experimento
-# dir_experimento <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos/exp9012"
-# modelos_ensemble <- list()
-# 
-# cat("\n=== Cargando modelos del ensamble ===\n")
-# 
-# for(i in 1:length(PARAM$semillas)) {
-#   # Construir el nombre del archivo según tu nomenclatura
-#   archivo_modelo <- file.path(dir_experimento, paste0("modelo_seed_", PARAM$semillas[i], ".txt"))
-#   
-#   # Verificar si el archivo existe
-#   if(file.exists(archivo_modelo)) {
-#     cat("Cargando modelo", i, "- Semilla:", PARAM$semillas[i], "\n")
-#     
-#     # Cargar modelo LightGBM desde archivo .txt
-#     modelos_ensemble[[i]] <- lgb.load(archivo_modelo)
-#     
-#   } else {
-#     cat("ADVERTENCIA: No se encontró el archivo:", archivo_modelo, "\n")
-#   }
-# }
-# 
-# cat("\nTotal de modelos cargados:", length(modelos_ensemble), "\n")
+# Cargar modelos guardados desde el directorio de experimento
+dir_experimento <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos/exp9015"
+
+modelos_ensemble <- list()
+
+cat("\n=== Cargando modelos del ensamble ===\n")
+
+for(i in 1:length(PARAM$semillas)) {
+  # Construir el nombre del archivo según tu nomenclatura
+  archivo_modelo <- file.path(dir_experimento, paste0("modelo_seed_", PARAM$semillas[i], ".txt"))
+
+  # Verificar si el archivo existe
+  if(file.exists(archivo_modelo)) {
+    cat("Cargando modelo", i, "- Semilla:", PARAM$semillas[i], "\n")
+
+    # Cargar modelo LightGBM desde archivo .txt
+    modelos_ensemble[[i]] <- lgb.load(archivo_modelo)
+
+  } else {
+    cat("ADVERTENCIA: No se encontró el archivo:", archivo_modelo, "\n")
+  }
+}
+
+cat("\nTotal de modelos cargados:", length(modelos_ensemble), "\n")
+```
+
+```{r}
+
+cat("\n=== Probando predicción con cada modelo ===\n")
+
+dfuture_matrix <- data.matrix(dfuture[, campos_buenos, with = FALSE])
+
+cat("Dimensiones de dfuture_matrix:", nrow(dfuture_matrix), "filas x", 
+    ncol(dfuture_matrix), "columnas\n\n")
+
+for(i in 1:length(PARAM$semillas)) {
+  cat("Probando modelo", i, "(semilla", PARAM$semillas[i], ")... ")
+  
+  resultado <- tryCatch({
+    pred_test <- predict(
+      modelos_ensemble[[i]],
+      dfuture_matrix[1:10, ]  # Solo primeras 10 filas para probar
+    )
+    cat("OK - Predicción exitosa\n")
+    "OK"
+  }, error = function(e) {
+    cat("ERROR:", e$message, "\n")
+    e$message
+  })
+}
+
 ```
 
 ```{r chunk86}
 # # aplico el modelo a los datos sin clase
 
-# setwd(dir_experimento)
+setwd(dir_experimento)
 
 # Definir dfuture
 dfuture <- dataset[foto_mes %in% PARAM$future]
@@ -2989,7 +3032,7 @@ tb_prediccion <- dfuture[, list(numero_de_cliente, foto_mes)]
 tb_prediccion[, prob := prediccion]
 
 # guardar
-# setwd(dir_experimento)
+setwd(dir_experimento)
 
 # para VM
 fwrite(tb_prediccion,
@@ -3020,7 +3063,7 @@ print(paste("'202106' tiene", filas202106, "filas."))
 
 setorder(tb_prediccion, -prob)
 
-# setwd(dir_experimento) #para local R
+setwd(dir_experimento) #para local R
 
 # para VM
 dir.create("kaggle", showWarnings = FALSE)
@@ -3146,7 +3189,7 @@ length(PARAM$semillas), "modelos \n")
 tb_prediccion_false_future <- false_future[, list(numero_de_cliente, foto_mes)]
 tb_prediccion_false_future[, prob := prediccion_false_future]
 
-# setwd(dir_experimento)
+setwd(dir_experimento)
 # para VM
 fwrite(tb_prediccion_false_future,
   file = "prediccion_false_future.txt",
@@ -3171,7 +3214,7 @@ PARAM$cortes
 
 ```{r}
 
-# setwd(dir_experimento)  #PARA R LOCAL
+setwd(dir_experimento)  #PARA R LOCAL
 
 # Crear/abrir archivo para guardar
 test_ganancia_envios <- paste0("test_ganancia_envios_", PARAM$experimento, ".txt")
@@ -3246,7 +3289,7 @@ ptest <- ggplot(resultados_ganancia, aes(x = envios, y = ganancia_total)) +
 
 print(ptest)
 
-# setwd(dir_experimento) #para Rstudio
+setwd(dir_experimento) #para Rstudio
 
 # para VM
 
@@ -3321,7 +3364,7 @@ p_acumulada <- ggplot(tb_filtrada, aes(x = indice, y = ganancia_acumulada)) +
 print(p_acumulada)
 
 # Guardar
-# setwd(dir_experimento) #para R
+setwd(dir_experimento) #para R
 nombre_archivo_acum <- paste0("curva_ganancia_acumulada_exp_", PARAM$experimento, ".png")
 ggsave(nombre_archivo_acum, p_acumulada, width = 14, height = 8, dpi = 300)
 
@@ -3333,7 +3376,7 @@ cat("Corte ideal por cliente:", indice_maximo, "\n")
 
 ```{r chunk104}
 
-# setwd(dir_experimento) #para R
+setwd(dir_experimento) #para R
 
 #para VM
 write_yaml(PARAM, file = "PARAM.yml")
