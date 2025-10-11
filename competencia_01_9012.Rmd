@@ -1506,8 +1506,8 @@ dim(dataset)
 ```
 
 
-## fwrite competencia_01_fe123_rankshort_agui
-dataset con clase ternaria y lags y deltas de orden 1 y aguinaldo columnas normalizadas
+## fwrite competencia_01_fe123_rankshort_agui06
+
 ```{r chunk23}
 
 # fwrite( dataset,
@@ -1525,7 +1525,7 @@ dataset con clase ternaria y lags y deltas de orden 1 y aguinaldo columnas norma
 getwd()
 
 fwrite(dataset,
-       file = "competencia_01_fe123_rankshort_agui.csv.gz",
+       file = "competencia_01_fe123_rankshort_agui06.csv.gz",
        sep = ",")
 
 ```
