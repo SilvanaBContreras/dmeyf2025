@@ -5,17 +5,16 @@ output: html_document
 
 9017
 
-REVISAR
 HT 
-dataset: fe123rank agui (rank todas continuas + agui backpropagado)
-11 hiperparámetros (acortados)
+dataset: fe123rank_short 
+11 hiperparámetros 
 train 1,2,3
 0.2
-AUC = 
+AUC = stop#36. auc = 0.9447
 
 
 final train 1, 2, 3
-dataset:  fe123rank agui (rank todas continuas + agui backpropagado)
+dataset:  fe123ranshort. mpayroll 202106 reemplazado por normalizado (-aquinaldo estimado)
 5 semillas
 
 future 06
