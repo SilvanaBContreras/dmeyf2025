@@ -1523,19 +1523,22 @@ dataset[foto_mes == 202106 & recibio_aguinaldo == 1,
 ### recibio_aguinaldo backwards
 ```{r}
 
+# PROPAGO RECIBIO AGUINALDO HACIA ATRAS CORREGIDO
+
 # PROPAGO RECIBIO AGUINALDO HACIA ATRAS
-
-# Primero: poner NA a todos los que NO están en 202106
 clientes_en_202106 <- dataset[foto_mes == 202106, unique(numero_de_cliente)]
-dataset[!(numero_de_cliente %in% clientes_en_202106), recibio_aguinaldo := NA_integer_]
 
-# 1. Clientes con 1 en 202106 → poner 1 en todos los meses
+# Clientes NO en 202106 → poner 0 en todos los meses
+dataset[!(numero_de_cliente %in% clientes_en_202106), recibio_aguinaldo := 0L]
+
+# Clientes con 1 en 202106 → poner 1 en todos los meses
 clientes_con_1 <- dataset[foto_mes == 202106 & recibio_aguinaldo == 1, numero_de_cliente]
 dataset[numero_de_cliente %in% clientes_con_1, recibio_aguinaldo := 1]
 
-# 2. Clientes con 0 en 202106 → poner 0 en todos los meses
+# Clientes con 0 en 202106 → poner 0 en todos los meses
 clientes_con_0 <- dataset[foto_mes == 202106 & recibio_aguinaldo == 0, numero_de_cliente]
 dataset[numero_de_cliente %in% clientes_con_0, recibio_aguinaldo := 0]
+
 
 
 ```
@@ -2229,6 +2232,77 @@ print(PARAM$out$lgbm$y)
 # PRODUCCION
 Construyo el modelo final, que es uno solo, no hace ningun tipo de particion < training, validation, testing>]
 
+
+limpio el ambiente de R
+
+```{r chunk28}
+format(Sys.time(), "%a %b %d %X %Y")
+```
+
+```{r chunk29}
+# limpio la memoria
+rm(list=ls(all.names=TRUE)) # remove all objects
+gc(full=TRUE, verbose=FALSE) # garbage collection
+```
+
+##Carga de Librerias
+
+```{r chunk30}
+# cargo las librerias que necesito
+require("data.table")
+require("parallel")
+
+if(!require("R.utils")) install.packages("R.utils")
+require("R.utils")
+
+if( !require("primes") ) install.packages("primes")
+require("primes")
+
+if( !require("utils") ) install.packages("utils")
+require("utils")
+
+if( !require("rlist") ) install.packages("rlist")
+require("rlist")
+
+if( !require("yaml")) install.packages("yaml")
+require("yaml")
+
+if( !require("lightgbm") ) install.packages("lightgbm")
+require("lightgbm")
+
+if( !require("DiceKriging") ) install.packages("DiceKriging")
+require("DiceKriging")
+
+if( !require("mlrMBO") ) install.packages("mlrMBO")
+require("mlrMBO")
+```
+
+# nro EXP y seeds
+
+```{r chunk31}
+PARAM <- list()
+PARAM$experimento <- 9015
+
+PARAM$semilla_primigenia <- 999199
+PARAM$semillas <- c(999199, 999499, 999599, 999959, 999979
+#                    , 104729, 523987
+#                    , 7919,1299709, 2097593
+)
+
+```
+
+
+# períodos
+```{r chunk33}
+# training y future
+PARAM$train <- c(202101, 202102, 202103)
+PARAM$train_final <- c(202102, 202101, 202103)
+PARAM$future <- c(202106)
+PARAM$false_future <- c(202104)
+PARAM$semilla_kaggle <- 314159
+PARAM$cortes <- seq(6000, 18000, by= 500)
+```
+
 ## carpeta EXP 
 ```{r chunk64}
 
@@ -2271,8 +2345,13 @@ dataset <- fread("https://storage.googleapis.com/silvanacontreras76_bukito3/data
 ```{r}
 cat("VERIFICACIÓN POST-CARGA\n\n")
 
-#columnas 459 (fe1)
-#columnas 462 (fe1yag)
+#fe123
+#fe123_rankshort
+#fe123_rankshort_agui
+#fe123_rank
+#fe123_rank_agui = 1143
+
+
 
 cat("Dimensiones totales:", dim(dataset), "\n\n")
 
@@ -2295,24 +2374,6 @@ if(nrow(dataset[foto_mes == 202106]) != 164313) {
 
 ```{r chunk67}
 dim(dataset) #1143
-```
-### períodos
-```{r chunk33}
-
-PARAM$train_final <- c(202102, 202101, 202103)
-PARAM$future <- c(202106)
-PARAM$false_future <- c(202104)
-PARAM$semilla_kaggle <- 314159
-PARAM$cortes <- seq(6000, 18000, by= 500)
-```
-
-### undersampling
-```{r chunk34}
-# un undersampling de 0.1  toma solo el 10% de los CONTINUA
-# undersampling de 1.0  implica tomar TODOS los datos
-
-PARAM$trainingstrategy$undersampling <- 0.2
-
 ```
 
 ## clase01
@@ -2355,6 +2416,17 @@ dtrain_final <- lgb.Dataset(
 ```
 
 ##Final Training Hyperparameters
+
+
+### undersampling
+```{r chunk34}
+# un undersampling de 0.1  toma solo el 10% de los CONTINUA
+# undersampling de 1.0  implica tomar TODOS los datos
+
+PARAM$trainingstrategy$undersampling <- 0.2
+
+```
+
 ```{r chunk72}
 # Parametros LightGBM
 
@@ -2401,6 +2473,23 @@ PARAM$lgbm$param_fijos <-  list(
 )
 ```
 
+```{r}
+# 9015 bayesiana #16 so far AUC = 0.9482
+
+PARAM$out$lgbm$mejores_hiperparametros <- list(
+   num_iterations = 3091,
+   learning_rate = 0.0293,
+   feature_fraction = 0.553,
+   num_leaves = 209,
+   min_data_in_leaf = 3,
+   max_depth = 20,
+   min_gain_to_split = 0.00304,
+   lambda_l1 = 0.00961,
+   lambda_l2 = 0.215,
+   bagging_fraction = 0.867,
+   bagging_freq = 3
+)
+```
 
 ```{r chunk61}
 # EXP HT 4940
@@ -2639,7 +2728,7 @@ Genero el modelo final, siempre sobre TODOS los datos de  final_train, sin hacer
 ```
 
 ```{r}
-# ENTRENO RENOVADO CON DIRECTORIO Y GUARDANDO DE A 1
+# ENTRENO GUARDANDO DE A 1
 
 # setwd( paste0("/content/buckets/b1/exp/", experimento ))
 # setwd(dir_experimento)
