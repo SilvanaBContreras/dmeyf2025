@@ -1317,6 +1317,17 @@ print(cols_rank)
 
 ```
 
+##Levanto competencia_01_fe123_rankshort
+```{r}
+ 
+getwd()
+# dataset <- fread("https://storage.googleapis.com/silvanacontreras76_bukito3/datasets/competencia01_fe123_rankshort.csv.gz", stringsAsFactors= TRUE)
+
+```
+```{r}
+dim(dataset)
+```
+
 ## AGUINALDO
 clientes que tuvieron payroll en 04 y 06, tienen al menos 1 ctrxpayroll en junio y su mpayroll de junio es al menos 40% mayor que el de abril. (me quedan clientes con ctrxpayroll positivo sin asignar a la columna). Por lo tanto lo que identifico no son empleados, sino aproximo aguinaldos.
 ```{r}
@@ -1362,6 +1373,32 @@ print(dataset[foto_mes == 202106 & recibio_aguinaldo == 1, .N, by = cpayroll_trx
 tabla_aguinaldo <- dataset[foto_mes == 202106, .N, by = recibio_aguinaldo]
 tabla_aguinaldo[, proporcion := round(N / sum(N) * 100, 2)]
 print(tabla_aguinaldo)
+
+```
+
+```{r}
+
+# 1. Clientes con 1 en 202106 → poner 1 en todos los meses
+clientes_con_1 <- dataset[foto_mes == 202106 & recibio_aguinaldo == 1, numero_de_cliente]
+dataset[numero_de_cliente %in% clientes_con_1, recibio_aguinaldo := 1]
+
+# 2. Clientes con 0 en 202106 → poner 0 en todos los meses
+clientes_con_0 <- dataset[foto_mes == 202106 & recibio_aguinaldo == 0, numero_de_cliente]
+dataset[numero_de_cliente %in% clientes_con_0, recibio_aguinaldo := 0]
+
+# 3. Los demás quedan en NA (no hacer nada, ya están en NA)
+
+```
+
+```{r}
+# Contar únicos y registros por mes
+dataset[, .(
+  valores_unicos = paste(sort(unique(recibio_aguinaldo)), collapse = ", "),
+  n_con_1 = sum(recibio_aguinaldo == 1, na.rm = TRUE),
+  n_con_0 = sum(recibio_aguinaldo == 0, na.rm = TRUE),
+  n_con_NA = sum(is.na(recibio_aguinaldo)),
+  total_registros = .N
+), by = foto_mes][order(foto_mes)]
 
 ```
 
@@ -1469,7 +1506,7 @@ dim(dataset)
 ```
 
 
-## fwrite competencia_01_fe123_rank_agui
+## fwrite competencia_01_fe123_rankshort_agui
 dataset con clase ternaria y lags y deltas de orden 1 y aguinaldo columnas normalizadas
 ```{r chunk23}
 
@@ -1484,11 +1521,11 @@ dataset con clase ternaria y lags y deltas de orden 1 y aguinaldo columnas norma
 #        sep = ",")
 # 
 # Rstudio
-setwd(dir_experimento)
+# setwd(dir_experimento)
 getwd()
 
 fwrite(dataset,
-       file = "competencia_01_fe123_rank_agui.csv.gz",
+       file = "competencia_01_fe123_rankshort_agui.csv.gz",
        sep = ",")
 
 ```
@@ -2376,7 +2413,7 @@ PARAM$lgbm$param_fijos <-  list(
 
 ```{r}
 
-# EXP 9012 (1,2,3, ranking y agui) provisorio hasta iter #26
+# EXP 9012 (1,2,3, ranking y agui) provisorio hasta iter #36
 # AUC= 0,9447
 
 PARAM$out$lgbm$mejores_hiperparametros <- list(
@@ -2413,12 +2450,26 @@ param_final
 param_final$seed <- PARAM$semillas
 ```
 
+### escalo por undersampling
+
 ```{r chunk77}
 # este punto es muy SUTIL  y será revisado en la Clase 05
 # acá retoma esto PARAM$trainingstrategy$undersampling ojo no haber borrado
 
 param_normalizado <- copy(param_final)
 param_normalizado$min_data_in_leaf <-  round(param_final$min_data_in_leaf / PARAM$trainingstrategy$undersampling)
+```
+
+### escalo para 202104
+```{r}
+
+# # Ajuste adicional por cambio en cantidad de registros reales
+# registros_optimizacion <- dataset[foto_mes %in% c(202101, 202102, 202103), .N]
+# registros_training <- dataset[foto_mes %in% c(202101, 202102, 202103, 202104), .N]
+# factor_registros <- registros_training / registros_optimizacion
+# 
+# param_normalizado$min_data_in_leaf <- round(param_normalizado$min_data_in_leaf * factor_registros)
+
 ```
 
 ```{r chunk78}
@@ -2509,6 +2560,66 @@ cat("\n=== Ensamble de", length(PARAM$semillas), "modelos completado ===\n")
 
 ```
 
+####retomo train si murió
+```{r}
+# # REANUDACIÓN DEL ENTRENAMIENTO DE SEMILLAS FALTANTES
+# 
+# # Asegurarse de estar en el directorio correcto
+# setwd(dir_experimento)
+# 
+# # 1. IDENTIFICAR SEMILLAS YA ENTRENADAS
+# # Obtener los nombres de los archivos de modelos ya guardados
+# archivos_modelos <- list.files(pattern = "^modelo_seed_.*\\.txt$")
+# 
+# # Extraer las semillas de los nombres de archivo.
+# # Esto convierte, por ejemplo, "modelo_seed_271828.txt" a "271828" y luego a un número.
+# semillas_entrenadas <- as.numeric(gsub("modelo_seed_(.*)\\.txt", "\\1", archivos_modelos))
+# 
+# # 2. ENCONTRAR SEMILLAS FALTANTES
+# # Usar setdiff para encontrar las semillas que están en PARAM$semillas pero NO en semillas_entrenadas
+# semillas_faltantes <- setdiff(PARAM$semillas, semillas_entrenadas)
+# 
+# cat("Total de semillas a entrenar (original):", length(PARAM$semillas), "\n")
+# cat("Semillas ya entrenadas:", length(semillas_entrenadas), "\n")
+# cat("Semillas faltantes por entrenar:", length(semillas_faltantes), "\n")
+# if (length(semillas_faltantes) > 0) {
+#     cat("Semillas faltantes:", paste(semillas_faltantes, collapse = ", "), "\n")
+# } else {
+#     cat("¡Todo el ensamble ya fue entrenado y guardado!\n")
+# }
+# 
+# 
+# # 3. ENTRENAR SOLO LAS SEMILLAS FALTANTES
+# 
+# # Crear una lista auxiliar para el bucle de reanudación
+# semillas_a_procesar <- semillas_faltantes
+# 
+# # Entrenar un modelo solo por cada semilla faltante
+# for(semilla_actual in semillas_a_procesar) {
+#     cat("\n=== Retomando entrenamiento con semilla faltante:", semilla_actual, "===\n")
+# 
+#     set.seed(semilla_actual)
+#     param_normalizado$seed <- semilla_actual
+# 
+#     # Entrenar modelo (usando la semilla actual)
+#     modelo <- lgb.train(
+#         data = dtrain_final,
+#         param = param_normalizado
+#     )
+# 
+#     # Guardar modelo INMEDIATAMENTE
+#     nombre_archivo <- paste0("modelo_seed_", semilla_actual, ".txt")
+#     lgb.save(modelo, nombre_archivo)
+#     cat("Modelo guardado como:", nombre_archivo, "\n")
+# 
+#     # Nota: No lo guardamos en 'modelos_ensemble' porque esa lista suele ser para
+#     # usar en memoria. Aquí nos enfocamos solo en guardar el archivo faltante.
+# 
+#     cat("Modelo entrenado y guardado exitosamente\n")
+# }
+# 
+# cat("\n=== Proceso de reanudación completado ===\n")
+```
 
 
 ## importancia variables
@@ -2603,8 +2714,37 @@ Aplico el modelo final a los datos del futuro
 # )
 ```
 
+###cargo modelos desde otro lado
+```{r}
+# # Cargar modelos guardados desde el directorio de experimento
+# dir_experimento <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos/exp9012"
+# modelos_ensemble <- list()
+# 
+# cat("\n=== Cargando modelos del ensamble ===\n")
+# 
+# for(i in 1:length(PARAM$semillas)) {
+#   # Construir el nombre del archivo según tu nomenclatura
+#   archivo_modelo <- file.path(dir_experimento, paste0("modelo_seed_", PARAM$semillas[i], ".txt"))
+#   
+#   # Verificar si el archivo existe
+#   if(file.exists(archivo_modelo)) {
+#     cat("Cargando modelo", i, "- Semilla:", PARAM$semillas[i], "\n")
+#     
+#     # Cargar modelo LightGBM desde archivo .txt
+#     modelos_ensemble[[i]] <- lgb.load(archivo_modelo)
+#     
+#   } else {
+#     cat("ADVERTENCIA: No se encontró el archivo:", archivo_modelo, "\n")
+#   }
+# }
+# 
+# cat("\nTotal de modelos cargados:", length(modelos_ensemble), "\n")
+```
+
 ```{r chunk86}
 # # aplico el modelo a los datos sin clase
+
+setwd(dir_experimento)
 
 # Definir dfuture
 dfuture <- dataset[foto_mes %in% PARAM$future]
@@ -2821,30 +2961,37 @@ drealidad <- realidad_inicializar( false_future, PARAM)
 PARAM$cortes
 ```
 
-```{r chunk101}
+```{r}
 
-# genero los  "envios" mejores de false future
+setwd(dir_experimento)  #PARA R LOCAL
+# Crear/abrir archivo para guardar
+test_ganancia_envios <- paste0("test_ganancia_envios_", PARAM$experimento, ".txt")
+sink(test_ganancia_envios, split = TRUE)  # split = TRUE imprime en pantalla Y guarda
 
-# ordeno por probabilidad descendente
+cat("EXPERIMENTO:", PARAM$experimento, "\n")
+cat("Período Train Final:", paste(PARAM$train_final, collapse = ", "), "\n")
+cat("Período False Future:", paste(PARAM$false_future, collapse = ", "), "\n")
+cat("Cortes:", paste(range(PARAM$cortes), collapse = " a "), 
+    " (step=", unique(diff(PARAM$cortes)), ")\n", sep = "")
+
 setorder(tb_prediccion_false_future, -prob)
-
 for (envios in PARAM$cortes) {
-
-  tb_prediccion_false_future[, Predicted := 0L] # seteo inicial a 0
-  tb_prediccion_false_future[1:envios, Predicted := 1L] # marco los primeros
-
-   res <- realidad_evaluar( drealidad, tb_prediccion_false_future)
-
+  tb_prediccion_false_future[, Predicted := 0L]
+  tb_prediccion_false_future[1:envios, Predicted := 1L]
+  res <- realidad_evaluar(drealidad, tb_prediccion_false_future)
   options(scipen = 999)
-  cat( "Envios=", envios, "\t",
-    " TOTAL=", res$total,
-    "  Public=", res$public,
-    " Private=", res$private,
-    "\n",
-    sep= ""
+  cat("Envios=", envios, "\t",
+      " TOTAL=", res$total,
+      "  Public=", res$public,
+      " Private=", res$private,
+      "\n",
+      sep = ""
   )
-
 }
+
+# Cerrar archivo
+sink()
+cat("\n✓ Resultados guardados en:", test_ganancia_envios, "\n")
 
 
 ```
@@ -2900,6 +3047,80 @@ ggsave(nombre_archivo, p, width = 10, height = 6, dpi = 300)
 
 ```
 
+```{r}
+# chunk102b - Gráfico de ganancia acumulada (referencia sofi)
+
+# Ordenar por probabilidad descendente
+setorder(tb_prediccion_false_future, -prob)
+
+# Calcular ganancia acumulada
+tb_prediccion_false_future[, indice := 1:.N]
+
+# Unir con drealidad para tener clase_ternaria
+tb_ganancia <- merge(
+  tb_prediccion_false_future[, .(numero_de_cliente, foto_mes, prob, indice)],
+  drealidad[, .(numero_de_cliente, foto_mes, clase_ternaria)],
+  by = c("numero_de_cliente", "foto_mes")
+)
+
+# Ordenar por indice para mantener el orden
+setorder(tb_ganancia, indice)
+
+# Calcular ganancia individual y acumulada
+tb_ganancia[, ganancia_individual := ifelse(clase_ternaria == "BAJA+2", 780000, -20000)]
+tb_ganancia[, ganancia_acumulada := cumsum(ganancia_individual)]
+
+# Encontrar ganancia máxima
+ganancia_maxima <- max(tb_ganancia$ganancia_acumulada)
+indice_maximo <- tb_ganancia[ganancia_acumulada == ganancia_maxima, indice][1]
+
+# Filtrar datos (umbral 66% de ganancia máxima)
+umbral_ganancia <- ganancia_maxima * 0.66
+tb_filtrada <- tb_ganancia[ganancia_acumulada >= umbral_ganancia]
+
+# Crear gráfico
+p_acumulada <- ggplot(tb_filtrada, aes(x = indice, y = ganancia_acumulada)) +
+  geom_line(color = "blue", size = 1.2) +
+  geom_point(data = tb_ganancia[indice == indice_maximo], 
+             aes(x = indice, y = ganancia_acumulada),
+             color = "red", size = 3) +
+  annotate("label", 
+           x = indice_maximo, 
+           y = ganancia_maxima * 1.05,
+           label = paste0("Ganancia Máxima\n", format(ganancia_maxima, big.mark = ",", scientific = FALSE)),
+           color = "red", 
+           fontface = "bold",
+           fill = "white",
+           label.size = 0.5) +
+  geom_segment(aes(x = indice_maximo, y = ganancia_maxima,
+                   xend = indice_maximo, yend = ganancia_maxima * 1.04),
+               arrow = arrow(length = unit(0.3, "cm")),
+               color = "red") +
+  scale_x_continuous(labels = scales::comma) +
+  scale_y_continuous(labels = scales::comma) +
+  labs(
+    title = paste0("Ganancia acumulada por orden de predicción (filtrada) - EXP ", PARAM$experimento),
+    x = "Clientes ordenados por probabilidad",
+    y = "Ganancia Acumulada"
+  ) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(face = "bold", size = 14),
+    panel.grid.minor = element_line(alpha = 0.3)
+  )
+
+print(p_acumulada)
+
+# Guardar
+setwd(dir_experimento) #para R
+nombre_archivo_acum <- paste0("curva_ganancia_acumulada_exp_", PARAM$experimento, ".png")
+ggsave(nombre_archivo_acum, p_acumulada, width = 14, height = 8, dpi = 300)
+
+cat("Ganancia máxima:", format(ganancia_maxima, big.mark = ","), "\n")
+cat("Corte ideal por cliente:", indice_maximo, "\n")
+
+```
+
 
 ```{r chunk104}
 
@@ -2917,10 +3138,10 @@ write_yaml(PARAM, file = "PARAM.yml")
 # : Submission must have 164313 rows
 
 filas_prediccion_ff <- nrow(tb_prediccion_false_future)
-filas202106 <- nrow(dataset[foto_mes == 202106])
+filas202104 <- nrow(dataset[foto_mes == 202104])
 
 print(paste("'tb_prediccion_ff' tiene", filas_prediccion_ff, "filas."))
-print(paste("'202106' tiene", filas202106, "filas."))
+print(paste("'202104' tiene", filas202104, "filas."))
 ```
 
 ```{r chunk106}
