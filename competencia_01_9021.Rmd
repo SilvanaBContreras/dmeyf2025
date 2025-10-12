@@ -3,7 +3,7 @@ title: 'Competencia 01'
 output: html_document
 
 
-9022
+9021
 
 dataset: fe123rankshort
 11 hiperparámetros
@@ -13,7 +13,7 @@ train 3
 AUC = 0.9293
 
 
-final train 202103
+final train 1,2,3,4
 dataset:  fe123rankshort con mpayroll - aguinaldo en 202106
 5 semillas
 
@@ -33,12 +33,12 @@ gc(full=TRUE, verbose=FALSE) # garbage collection
 ```{r}
 
 PARAM <- list()
-PARAM$experimento <- 9022
+PARAM$experimento <- 9021
 
 PARAM$semilla_primigenia <- 999199
 PARAM$semillas <- c(999199, 999499, 999599, 999959, 999979
-                    #, 104729, 523987
-                    #, 7919,1299709, 2097593
+                    , 104729, 523987
+                    , 7919,1299709, 2097593
 )
 
 ```
@@ -73,7 +73,7 @@ getwd()
 ```{r chunk33}
 # training y future
 PARAM$train <- c(202103)
-PARAM$train_final <- c( 202103)
+PARAM$train_final <- c(202101, 202102, 202103, 202104)
 PARAM$future <- c(202106)
 PARAM$false_future <- c(202104)
 PARAM$semilla_kaggle <- 314159
@@ -2286,12 +2286,12 @@ require("mlrMBO")
 
 ```{r chunk31}
 PARAM <- list()
-PARAM$experimento <- 9022
+PARAM$experimento <- 9021
 
 PARAM$semilla_primigenia <- 999199
 PARAM$semillas <- c(999199, 999499, 999599, 999959, 999979
-#                    , 104729, 523987
-#                    , 7919,1299709, 2097593
+                    , 104729, 523987
+                    , 7919,1299709, 2097593
 )
 
 ```
@@ -2301,7 +2301,7 @@ PARAM$semillas <- c(999199, 999499, 999599, 999959, 999979
 ```{r chunk33}
 # training y future
 PARAM$train <- c(202103)
-PARAM$train_final <- c(202103)
+PARAM$train_final <- c(202101, 202102, 202103, 202104)
 PARAM$future <- c(202106)
 PARAM$false_future <- c(202104)
 PARAM$semilla_kaggle <- 314159
@@ -2310,28 +2310,28 @@ PARAM$cortes <- seq(6000, 18000, by= 500)
 
 ## carpeta EXP 
 ```{r chunk64}
-# 
-# setwd("/content/buckets/b1/exp")
-# experimento <- paste0("exp", PARAM$experimento)
-# dir.create(experimento, showWarnings= FALSE)
-# setwd( paste0("/content/buckets/b1/exp/", experimento ))
 
-# RStudio
-dir_base <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos"
-
-# Crear directorio base si no existe
-dir.create(dir_base, showWarnings = FALSE, recursive = TRUE)
-
-# Crear directorio del experimento
+setwd("/content/buckets/b1/exp")
 experimento <- paste0("exp", PARAM$experimento)
-dir_experimento <- file.path(dir_base, experimento)
-dir.create(dir_experimento, showWarnings = FALSE)
-
-# Cambiar al directorio del experimento
-setwd(dir_experimento)
-
-# Verificar
-cat("Directorio de trabajo:", getwd(), "\n")
+dir.create(experimento, showWarnings= FALSE)
+setwd( paste0("/content/buckets/b1/exp/", experimento ))
+# 
+# # RStudio
+# dir_base <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos"
+# 
+# # Crear directorio base si no existe
+# dir.create(dir_base, showWarnings = FALSE, recursive = TRUE)
+# 
+# # Crear directorio del experimento
+# experimento <- paste0("exp", PARAM$experimento)
+# dir_experimento <- file.path(dir_base, experimento)
+# dir.create(dir_experimento, showWarnings = FALSE)
+# 
+# # Cambiar al directorio del experimento
+# setwd(dir_experimento)
+# 
+# # Verificar
+# cat("Directorio de trabajo:", getwd(), "\n")
 ```
 
 ## Final Training Dataset
@@ -2340,7 +2340,7 @@ Aqui esta la gran decision de en qué meses hago el Final Training
 <br> debo utilizar los mejores hiperparámetros que encontré en la  optimización bayesiana
 ```{r chunk65}
 
-options(timeout = 500)
+# options(timeout = 500)
 dataset <- fread("https://storage.googleapis.com/silvanacontreras76_bukito3/datasets/competencia01_fe123_rankshort.csv.gz", stringsAsFactors= TRUE)
 
 
@@ -2770,12 +2770,12 @@ param_normalizado$min_data_in_leaf <-  round(param_final$min_data_in_leaf / PARA
 ### escalo para 202104
 ```{r}
 
-# # Ajuste adicional por cambio en cantidad de registros reales
-# registros_optimizacion <- dataset[foto_mes %in% c(202101, 202102, 202103), .N]
-# registros_training <- dataset[foto_mes %in% c(202101, 202102, 202103, 202104), .N]
-# factor_registros <- registros_training / registros_optimizacion
-# 
-# param_normalizado$min_data_in_leaf <- round(param_normalizado$min_data_in_leaf * factor_registros)
+# Ajuste adicional por cambio en cantidad de registros reales
+registros_optimizacion <- dataset[foto_mes %in% c(202103), .N]
+registros_training <- dataset[foto_mes %in% c(202101, 202102, 202103, 202104), .N]
+factor_registros <- registros_training / registros_optimizacion
+
+param_normalizado$min_data_in_leaf <- round(param_normalizado$min_data_in_leaf * factor_registros)
 
 ```
 
@@ -2829,8 +2829,8 @@ Genero el modelo final, siempre sobre TODOS los datos de  final_train, sin hacer
 ```{r}
 # ENTRENO GUARDANDO DE A 1
 
-# setwd( paste0("/content/buckets/b1/exp/", experimento ))
-setwd(dir_experimento)
+setwd( paste0("/content/buckets/b1/exp/", experimento ))
+# setwd(dir_experimento)
 
 # Entreno ensamble mis semillas
 cat("Entrenando", length(PARAM$semillas), "modelos con diferentes semillas...\n")
@@ -2939,7 +2939,8 @@ tb_importancia <- as.data.table(lgb.importance(modelos_ensemble[[1]]))
 
 
 # # para VM
-setwd(dir_experimento)
+# setwd(dir_experimento)
+setwd( paste0("/content/buckets/b1/exp/", experimento ))
 
 fwrite(tb_importancia,
   file = "impo.txt",
@@ -2982,7 +2983,9 @@ print(p)
 
 # para VM
 
-setwd(dir_experimento)
+# setwd(dir_experimento)
+setwd( paste0("/content/buckets/b1/exp/", experimento ))
+
 
 nombre_archivo <- paste0("feature_importance_ggplot_exp_", PARAM$experimento, ".png")
 ggsave(nombre_archivo, p, width = 12, height = 8, dpi = 300)
@@ -3051,7 +3054,9 @@ Aplico el modelo final a los datos del futuro
 ```{r chunk86}
 # # aplico el modelo a los datos sin clase
 
-setwd(dir_experimento)
+# setwd(dir_experimento)
+setwd( paste0("/content/buckets/b1/exp/", experimento ))
+
 
 # Definir dfuture
 dfuture <- dataset[foto_mes %in% PARAM$future]
@@ -3088,7 +3093,9 @@ tb_prediccion <- dfuture[, list(numero_de_cliente, foto_mes)]
 tb_prediccion[, prob := prediccion]
 
 # guardar
-setwd(dir_experimento)
+# setwd(dir_experimento)
+setwd( paste0("/content/buckets/b1/exp/", experimento ))
+
 
 # para VM
 fwrite(tb_prediccion,
@@ -3119,7 +3126,9 @@ print(paste("'202106' tiene", filas202106, "filas."))
 
 setorder(tb_prediccion, -prob)
 
-setwd(dir_experimento) #para local R
+# setwd(dir_experimento) #para local R
+setwd( paste0("/content/buckets/b1/exp/", experimento ))
+
 
 # para VM
 dir.create("kaggle", showWarnings = FALSE)
@@ -3212,17 +3221,16 @@ realidad_evaluar <- function( prealidad, pprediccion) {
 
 ```{r chunk97}
 
-#PREDICCIONES POR SEMILLA Y PROMEDIO PREDICCIONES
-setwd(dir_experimento)
-
+# Definir dfuture
 false_future <- dataset[foto_mes %in% PARAM$false_future]
 
+# Aplicar cada modelo y guardar predicciones
 predicciones_ensemble_false_future <- list()
 
 cat("\n=== Generando predicciones para testeo ===\n")
 
 for(i in 1:length(PARAM$semillas)) {
-  cat("Prediciendo con modelo", i, "- Semilla:", PARAM$semillas[i], "\n")
+  cat("Prediciendo con modelo para test", i, "\n")
 
   prediccion_temp_false_future <- predict(
     modelos_ensemble[[i]],
@@ -3230,19 +3238,14 @@ for(i in 1:length(PARAM$semillas)) {
   )
 
   predicciones_ensemble_false_future[[i]] <- prediccion_temp_false_future
-  
-  tb_pred_individual <- false_future[, list(numero_de_cliente, foto_mes)]
-  tb_pred_individual[, prob := prediccion_temp_false_future]
-  
-  nombre_pred <- paste0("prediccion_false_future_seed_", PARAM$semillas[i], ".txt")
-  fwrite(tb_pred_individual, file = nombre_pred, sep = "\t")
-  cat("  ✓ Guardada:", nombre_pred, "\n")
 }
 
+# Promediar las predicciones
 prediccion_false_future <- rowMeans(do.call(cbind, predicciones_ensemble_false_future))
 
-cat("\nPredicción final false_future generada como promedio de",
-    length(PARAM$semillas), "modelos\n")
+cat("Predicción final false_future generada como promedio de",
+length(PARAM$semillas), "modelos \n")
+# length(semillas), "modelos\n")
 
 ```
 
@@ -3456,60 +3459,6 @@ filas202104 <- nrow(dataset[foto_mes == 202104])
 
 print(paste("'tb_prediccion_ff' tiene", filas_prediccion_ff, "filas."))
 print(paste("'202104' tiene", filas202104, "filas."))
-```
-### Ganancias xseed @ best corte ensamble
-```{r}
-
-setwd(dir_experimento)
-cat("\n=== Identificando corte óptimo del ensemble ===\n")
-
-mejor_ganancia <- -Inf
-mejor_corte <- NA
-
-setorder(tb_prediccion_false_future, -prob)
-
-for(corte in PARAM$cortes) {
-  tb_prediccion_false_future[, Predicted := 0L]
-  tb_prediccion_false_future[1:corte, Predicted := 1L]
-  
-  res <- realidad_evaluar(drealidad, tb_prediccion_false_future)
-  
-  if(res$total > mejor_ganancia) {
-    mejor_ganancia <- res$total
-    mejor_corte <- corte
-  }
-}
-
-cat("Corte óptimo ensemble:", mejor_corte, "envíos\n")
-cat("Ganancia óptima ensemble:", format(mejor_ganancia, big.mark=","), "\n\n")
-
-cat("=== Calculando ganancias individuales por semilla ===\n")
-
-ganancias_por_semilla <- data.table(
-  semilla = integer(),
-  ganancia = numeric()
-)
-
-for(i in 1:length(PARAM$semillas)) {
-  archivo_pred <- paste0("prediccion_false_future_seed_", PARAM$semillas[i], ".txt")
-  tb_pred <- fread(archivo_pred)
-  
-  setorder(tb_pred, -prob)
-  tb_pred[, Predicted := 0L]
-  tb_pred[1:mejor_corte, Predicted := 1L]
-  
-  res <- realidad_evaluar(drealidad, tb_pred)
-  
-  ganancias_por_semilla <- rbind(ganancias_por_semilla,
-    data.table(semilla = PARAM$semillas[i], ganancia = res$total))
-  
-  cat("Semilla", PARAM$semillas[i], "- Ganancia:", format(res$total, big.mark=","), "\n")
-}
-
-archivo_salida <- paste0("ganancias_individuales_", PARAM$experimento, ".txt")
-fwrite(ganancias_por_semilla, file = archivo_salida, sep = "\t")
-
-cat("\n✓ Ganancias individuales guardadas en:", archivo_salida, "\n")
 ```
 
 ```{r chunk106}

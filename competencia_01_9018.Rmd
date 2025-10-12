@@ -1,24 +1,23 @@
 
-title: 'Competencia 01'
+title: 'Competencia 1'
 output: html_document
 
 
-9022
+9018
 
-dataset: fe123rankshort
-11 hiperparámetros
-train 3
+HT 
+dataset: fe123rank_short 
+11 hiperparámetros 
+train 1,2,3
 0.2
-11 hiperparametros
-AUC = 0.9293
+AUC = stop#36. auc = 0.9447
 
 
-final train 202103
-dataset:  fe123rankshort con mpayroll - aguinaldo en 202106
-5 semillas
+final train 1, 2, 3, 4
+dataset:  fe123ranshort. mpayroll 202106 reemplazado por normalizado (-aquinaldo estimado)
+10 semillas
 
 future 06
-false future 04
 
 #INICIO
 
@@ -33,12 +32,12 @@ gc(full=TRUE, verbose=FALSE) # garbage collection
 ```{r}
 
 PARAM <- list()
-PARAM$experimento <- 9022
+PARAM$experimento <- 9018
 
 PARAM$semilla_primigenia <- 999199
 PARAM$semillas <- c(999199, 999499, 999599, 999959, 999979
-                    #, 104729, 523987
-                    #, 7919,1299709, 2097593
+                    , 104729, 523987
+                    , 7919,1299709, 2097593
 )
 
 ```
@@ -72,8 +71,8 @@ getwd()
 ### períodos
 ```{r chunk33}
 # training y future
-PARAM$train <- c(202103)
-PARAM$train_final <- c( 202103)
+PARAM$train <- c(202101, 202102, 202103)
+PARAM$train_final <- c(202102, 202101, 202103)
 PARAM$future <- c(202106)
 PARAM$false_future <- c(202104)
 PARAM$semilla_kaggle <- 314159
@@ -1707,12 +1706,12 @@ require("mlrMBO")
 
 ```{r chunk31}
 PARAM <- list()
-PARAM$experimento <- 9022
+PARAM$experimento <- 9018
 
 PARAM$semilla_primigenia <- 999199
 PARAM$semillas <- c(999199, 999499, 999599, 999959, 999979
-#                    , 104729, 523987
-#                    , 7919,1299709, 2097593
+                    , 104729, 523987
+                    , 7919,1299709, 2097593
 )
 
 ```
@@ -1729,8 +1728,8 @@ PARAM$semillas <- c(999199, 999499, 999599, 999959, 999979
 # períodos
 ```{r chunk33}
 # training y future
-PARAM$train <- c(202103)
-PARAM$train_final <- c(202103)
+PARAM$train <- c(202101, 202102, 202103)
+PARAM$train_final <- c(202102, 202101, 202103, 202104)
 PARAM$future <- c(202106)
 PARAM$false_future <- c(202104)
 PARAM$semilla_kaggle <- 314159
@@ -2286,12 +2285,12 @@ require("mlrMBO")
 
 ```{r chunk31}
 PARAM <- list()
-PARAM$experimento <- 9022
+PARAM$experimento <- 9018
 
 PARAM$semilla_primigenia <- 999199
 PARAM$semillas <- c(999199, 999499, 999599, 999959, 999979
-#                    , 104729, 523987
-#                    , 7919,1299709, 2097593
+                   , 104729, 523987
+                    , 7919,1299709, 2097593
 )
 
 ```
@@ -2300,8 +2299,8 @@ PARAM$semillas <- c(999199, 999499, 999599, 999959, 999979
 # períodos
 ```{r chunk33}
 # training y future
-PARAM$train <- c(202103)
-PARAM$train_final <- c(202103)
+PARAM$train <- c(202101, 202102, 202103)
+PARAM$train_final <- c(202102, 202101, 202103, 202104)
 PARAM$future <- c(202106)
 PARAM$false_future <- c(202104)
 PARAM$semilla_kaggle <- 314159
@@ -2310,7 +2309,7 @@ PARAM$cortes <- seq(6000, 18000, by= 500)
 
 ## carpeta EXP 
 ```{r chunk64}
-# 
+
 # setwd("/content/buckets/b1/exp")
 # experimento <- paste0("exp", PARAM$experimento)
 # dir.create(experimento, showWarnings= FALSE)
@@ -2340,7 +2339,7 @@ Aqui esta la gran decision de en qué meses hago el Final Training
 <br> debo utilizar los mejores hiperparámetros que encontré en la  optimización bayesiana
 ```{r chunk65}
 
-options(timeout = 500)
+
 dataset <- fread("https://storage.googleapis.com/silvanacontreras76_bukito3/datasets/competencia01_fe123_rankshort.csv.gz", stringsAsFactors= TRUE)
 
 
@@ -2385,24 +2384,24 @@ dim(dataset) #1078
 
 ```{r}
 # DETECCIÓN DE QUIEN RECIBIÓ AGUINALDO
-# dataset[, recibio_aguinaldo := 0L]
-# 
-# dataset[foto_mes == 202106, recibio_aguinaldo := ifelse(
-#   cpayroll_trx_lag2 > 0 & #sueldo en abril
-#   cpayroll_trx_lag1 > 0 & #sueldo en abril
-#   cpayroll_trx > 0 & #sueldo en junio
-#   mpayroll > 1.4 * mpayroll_lag1 & #sueldo junio 40% mayor que abril
-#   !is.na(mpayroll) & !is.na(mpayroll_lag2) & #sueldo abril y junio no NA
-#   mpayroll > 0 & mpayroll_lag1 > 0 & mpayroll_lag2 > 0, #sueldo abril y junio positivo
-#   1L, 0L
-# )]
-# 
-# cat("\nDISTRIBUCIÓN DE 'recibio_aguinaldo' en 202106:\n")
-# print(dataset[foto_mes == 202106, .N, by = recibio_aguinaldo])
-# 
-# 
-# cat("\nDISTRIBUCIÓN cpayroll_trx:\n")
-# print(dataset[foto_mes == 202106 & recibio_aguinaldo == 1, .N, by = cpayroll_trx])
+dataset[, recibio_aguinaldo := 0L]
+
+dataset[foto_mes == 202106, recibio_aguinaldo := ifelse(
+  cpayroll_trx_lag2 > 0 & #sueldo en abril
+  cpayroll_trx_lag1 > 0 & #sueldo en abril
+  cpayroll_trx > 0 & #sueldo en junio
+  mpayroll > 1.4 * mpayroll_lag1 & #sueldo junio 40% mayor que abril
+  !is.na(mpayroll) & !is.na(mpayroll_lag2) & #sueldo abril y junio no NA
+  mpayroll > 0 & mpayroll_lag1 > 0 & mpayroll_lag2 > 0, #sueldo abril y junio positivo
+  1L, 0L
+)]
+
+cat("\nDISTRIBUCIÓN DE 'recibio_aguinaldo' en 202106:\n")
+print(dataset[foto_mes == 202106, .N, by = recibio_aguinaldo])
+
+
+cat("\nDISTRIBUCIÓN cpayroll_trx:\n")
+print(dataset[foto_mes == 202106 & recibio_aguinaldo == 1, .N, by = cpayroll_trx])
 
 ```
 
@@ -2411,24 +2410,24 @@ dim(dataset) #1078
 ```{r }
 
 
-# dataset[, mpayroll_normalizado := mpayroll]
-# 
-# dataset[foto_mes == 202106 & recibio_aguinaldo == 1,
-#         aguinaldo_estimado := pmax(mpayroll_delta1, 0)] #pmax evito negativos
-# 
-# # Se resta el aguinaldo estimado y luego se multiplica el resultado
-# # por 1.03 para sumar el 3,2% de inflación.
-# dataset[foto_mes == 202106 & recibio_aguinaldo == 1,
-#         mpayroll_normalizado := (mpayroll - aguinaldo_estimado) * 1.032]
+dataset[, mpayroll_normalizado := mpayroll]
+
+dataset[foto_mes == 202106 & recibio_aguinaldo == 1,
+        aguinaldo_estimado := pmax(mpayroll_delta1, 0)] #pmax evito negativos
+
+# Se resta el aguinaldo estimado y luego se multiplica el resultado
+# por 1.03 para sumar el 3,2% de inflación.
+dataset[foto_mes == 202106 & recibio_aguinaldo == 1,
+        mpayroll_normalizado := (mpayroll - aguinaldo_estimado) * 1.032]
 
 ```
 
 ```{r}
-# # Asignar el valor normalizado a mpayroll solo para clientes de 202106
-# dataset[foto_mes == 202106, mpayroll := mpayroll_normalizado]
-# 
-# # Eliminar las columnas auxiliares
-# dataset[, c("recibio_aguinaldo", "aguinaldo_estimado", "mpayroll_normalizado") := NULL]
+# Asignar el valor normalizado a mpayroll solo para clientes de 202106
+dataset[foto_mes == 202106, mpayroll := mpayroll_normalizado]
+
+# Eliminar las columnas auxiliares
+dataset[, c("recibio_aguinaldo", "aguinaldo_estimado", "mpayroll_normalizado") := NULL]
 ```
 
 ```{r}
@@ -2533,30 +2532,9 @@ PARAM$lgbm$param_fijos <-  list(
 )
 ```
 
-
 ```{r}
+# 9015 bayesiana #16 so far AUC = 0.9482
 
-# EXP 9022 AUC 0.9293
-
-PARAM$out$lgbm$mejores_hiperparametros <- list(
-  num_iterations = 3625,
-  learning_rate = 0.005911834,
-  feature_fraction = 0.2175392,
-  num_leaves = 774,
-  min_data_in_leaf = 3,
-  max_depth = 15,
-  min_gain_to_split = 0.2578446,
-  lambda_l1 = 1.472948,
-  lambda_l2 = 4.598443,
-  bagging_fraction = 0.8635728,
-  bagging_freq = 1
-)
-```
-
-```{r}
-
-# # 9015 bayesiana #16 so far AUC = 0.9482
-# 
 # PARAM$out$lgbm$mejores_hiperparametros <- list(
 #    num_iterations = 3091,
 #    learning_rate = 0.0293,
@@ -2593,6 +2571,7 @@ PARAM$out$lgbm$mejores_hiperparametros <- list(
 ```{r}
 
 # EXP 9016 #16 so far auc = 0.9417
+
 # PARAM$out$lgbm$mejores_hiperparametros <- list(
 #   num_iterations = 2019,
 #   learning_rate = 0.00825,
@@ -2721,25 +2700,20 @@ PARAM$out$lgbm$mejores_hiperparametros <- list(
 
 # EXP 9012 (1,2,3, ranking y agui) provisorio hasta iter #36
 # AUC= 0,9447
-# 
-# PARAM$out$lgbm$mejores_hiperparametros <- list(
-#    num_iterations = 3158,
-#    learning_rate = 0.0171,
-#    feature_fraction = 0.904,
-#    num_leaves = 372,
-#    min_data_in_leaf = 3,  # Asumido, ya que no se especificó en el último set
-#    max_depth = 12,
-#    min_gain_to_split = 0.000113,
-#    lambda_l1 = 0.015,
-#    lambda_l2 = 7.11,
-#    bagging_fraction = 0.949,
-#    bagging_freq = 4
-# )
 
-```
-
-```{r chunk74}
-#EXP 9015
+PARAM$out$lgbm$mejores_hiperparametros <- list(
+   num_iterations = 3158,
+   learning_rate = 0.0171,
+   feature_fraction = 0.904,
+   num_leaves = 372,
+   min_data_in_leaf = 3,  # Asumido, ya que no se especificó en el último set
+   max_depth = 12,
+   min_gain_to_split = 0.000113,
+   lambda_l1 = 0.015,
+   lambda_l2 = 7.11,
+   bagging_fraction = 0.949,
+   bagging_freq = 4
+)
 
 ```
 
@@ -2770,12 +2744,12 @@ param_normalizado$min_data_in_leaf <-  round(param_final$min_data_in_leaf / PARA
 ### escalo para 202104
 ```{r}
 
-# # Ajuste adicional por cambio en cantidad de registros reales
-# registros_optimizacion <- dataset[foto_mes %in% c(202101, 202102, 202103), .N]
-# registros_training <- dataset[foto_mes %in% c(202101, 202102, 202103, 202104), .N]
-# factor_registros <- registros_training / registros_optimizacion
-# 
-# param_normalizado$min_data_in_leaf <- round(param_normalizado$min_data_in_leaf * factor_registros)
+# Ajuste adicional por cambio en cantidad de registros reales
+registros_optimizacion <- dataset[foto_mes %in% c(202101, 202102, 202103), .N]
+registros_training <- dataset[foto_mes %in% c(202101, 202102, 202103, 202104), .N]
+factor_registros <- registros_training / registros_optimizacion
+
+param_normalizado$min_data_in_leaf <- round(param_normalizado$min_data_in_leaf * factor_registros)
 
 ```
 
@@ -2830,7 +2804,7 @@ Genero el modelo final, siempre sobre TODOS los datos de  final_train, sin hacer
 # ENTRENO GUARDANDO DE A 1
 
 # setwd( paste0("/content/buckets/b1/exp/", experimento ))
-setwd(dir_experimento)
+# setwd(dir_experimento)
 
 # Entreno ensamble mis semillas
 cat("Entrenando", length(PARAM$semillas), "modelos con diferentes semillas...\n")
@@ -2929,6 +2903,34 @@ cat("\n=== Ensamble de", length(PARAM$semillas), "modelos completado ===\n")
 ```
 
 
+###cargo modelos desde otro lado
+```{r}
+# # Cargar modelos guardados desde el directorio de experimento
+# dir_experimento <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos/exp9012"
+# modelos_ensemble <- list()
+# 
+# cat("\n=== Cargando modelos del ensamble ===\n")
+# 
+# for(i in 1:length(PARAM$semillas)) {
+#   # Construir el nombre del archivo según tu nomenclatura
+#   archivo_modelo <- file.path(dir_experimento, paste0("modelo_seed_", PARAM$semillas[i], ".txt"))
+#   
+#   # Verificar si el archivo existe
+#   if(file.exists(archivo_modelo)) {
+#     cat("Cargando modelo", i, "- Semilla:", PARAM$semillas[i], "\n")
+#     
+#     # Cargar modelo LightGBM desde archivo .txt
+#     modelos_ensemble[[i]] <- lgb.load(archivo_modelo)
+#     
+#   } else {
+#     cat("ADVERTENCIA: No se encontró el archivo:", archivo_modelo, "\n")
+#   }
+# }
+# 
+# cat("\nTotal de modelos cargados:", length(modelos_ensemble), "\n")
+```
+
+
 ## importancia variables
 ```{r chunk82}
 # ahora imprimo la importancia de variables
@@ -2939,7 +2941,7 @@ tb_importancia <- as.data.table(lgb.importance(modelos_ensemble[[1]]))
 
 
 # # para VM
-setwd(dir_experimento)
+# setwd(dir_experimento)
 
 fwrite(tb_importancia,
   file = "impo.txt",
@@ -2982,7 +2984,7 @@ print(p)
 
 # para VM
 
-setwd(dir_experimento)
+# setwd(dir_experimento)
 
 nombre_archivo <- paste0("feature_importance_ggplot_exp_", PARAM$experimento, ".png")
 ggsave(nombre_archivo, p, width = 12, height = 8, dpi = 300)
@@ -3021,37 +3023,10 @@ Aplico el modelo final a los datos del futuro
 # )
 ```
 
-###cargo modelos desde otro lado
-```{r}
-# # Cargar modelos guardados desde el directorio de experimento
-# dir_experimento <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos/exp9012"
-# modelos_ensemble <- list()
-# 
-# cat("\n=== Cargando modelos del ensamble ===\n")
-# 
-# for(i in 1:length(PARAM$semillas)) {
-#   # Construir el nombre del archivo según tu nomenclatura
-#   archivo_modelo <- file.path(dir_experimento, paste0("modelo_seed_", PARAM$semillas[i], ".txt"))
-#   
-#   # Verificar si el archivo existe
-#   if(file.exists(archivo_modelo)) {
-#     cat("Cargando modelo", i, "- Semilla:", PARAM$semillas[i], "\n")
-#     
-#     # Cargar modelo LightGBM desde archivo .txt
-#     modelos_ensemble[[i]] <- lgb.load(archivo_modelo)
-#     
-#   } else {
-#     cat("ADVERTENCIA: No se encontró el archivo:", archivo_modelo, "\n")
-#   }
-# }
-# 
-# cat("\nTotal de modelos cargados:", length(modelos_ensemble), "\n")
-```
-
 ```{r chunk86}
 # # aplico el modelo a los datos sin clase
 
-setwd(dir_experimento)
+# setwd(dir_experimento)
 
 # Definir dfuture
 dfuture <- dataset[foto_mes %in% PARAM$future]
@@ -3088,7 +3063,7 @@ tb_prediccion <- dfuture[, list(numero_de_cliente, foto_mes)]
 tb_prediccion[, prob := prediccion]
 
 # guardar
-setwd(dir_experimento)
+# setwd(dir_experimento)
 
 # para VM
 fwrite(tb_prediccion,
@@ -3119,7 +3094,7 @@ print(paste("'202106' tiene", filas202106, "filas."))
 
 setorder(tb_prediccion, -prob)
 
-setwd(dir_experimento) #para local R
+# setwd(dir_experimento) #para local R
 
 # para VM
 dir.create("kaggle", showWarnings = FALSE)
@@ -3212,17 +3187,16 @@ realidad_evaluar <- function( prealidad, pprediccion) {
 
 ```{r chunk97}
 
-#PREDICCIONES POR SEMILLA Y PROMEDIO PREDICCIONES
-setwd(dir_experimento)
-
+# Definir dfuture
 false_future <- dataset[foto_mes %in% PARAM$false_future]
 
+# Aplicar cada modelo y guardar predicciones
 predicciones_ensemble_false_future <- list()
 
 cat("\n=== Generando predicciones para testeo ===\n")
 
 for(i in 1:length(PARAM$semillas)) {
-  cat("Prediciendo con modelo", i, "- Semilla:", PARAM$semillas[i], "\n")
+  cat("Prediciendo con modelo para test", i, "\n")
 
   prediccion_temp_false_future <- predict(
     modelos_ensemble[[i]],
@@ -3230,19 +3204,14 @@ for(i in 1:length(PARAM$semillas)) {
   )
 
   predicciones_ensemble_false_future[[i]] <- prediccion_temp_false_future
-  
-  tb_pred_individual <- false_future[, list(numero_de_cliente, foto_mes)]
-  tb_pred_individual[, prob := prediccion_temp_false_future]
-  
-  nombre_pred <- paste0("prediccion_false_future_seed_", PARAM$semillas[i], ".txt")
-  fwrite(tb_pred_individual, file = nombre_pred, sep = "\t")
-  cat("  ✓ Guardada:", nombre_pred, "\n")
 }
 
+# Promediar las predicciones
 prediccion_false_future <- rowMeans(do.call(cbind, predicciones_ensemble_false_future))
 
-cat("\nPredicción final false_future generada como promedio de",
-    length(PARAM$semillas), "modelos\n")
+cat("Predicción final false_future generada como promedio de",
+length(PARAM$semillas), "modelos \n")
+# length(semillas), "modelos\n")
 
 ```
 
@@ -3251,7 +3220,7 @@ cat("\nPredicción final false_future generada como promedio de",
 tb_prediccion_false_future <- false_future[, list(numero_de_cliente, foto_mes)]
 tb_prediccion_false_future[, prob := prediccion_false_future]
 
-setwd(dir_experimento)
+# setwd(dir_experimento)
 # para VM
 fwrite(tb_prediccion_false_future,
   file = "prediccion_false_future.txt",
@@ -3276,7 +3245,7 @@ PARAM$cortes
 
 ```{r}
 
-setwd(dir_experimento)  #PARA R LOCAL
+# setwd(dir_experimento)  #PARA R LOCAL
 
 # Crear/abrir archivo para guardar
 test_ganancia_envios <- paste0("test_ganancia_envios_", PARAM$experimento, ".txt")
@@ -3351,7 +3320,7 @@ ptest <- ggplot(resultados_ganancia, aes(x = envios, y = ganancia_total)) +
 
 print(ptest)
 
-setwd(dir_experimento) #para Rstudio
+# setwd(dir_experimento) #para Rstudio
 
 # para VM
 
@@ -3426,7 +3395,8 @@ p_acumulada <- ggplot(tb_filtrada, aes(x = indice, y = ganancia_acumulada)) +
 print(p_acumulada)
 
 # Guardar
-setwd(dir_experimento) #para R
+# setwd(dir_experimento) #para R
+
 nombre_archivo_acum <- paste0("curva_ganancia_acumulada_exp_", PARAM$experimento, ".png")
 ggsave(nombre_archivo_acum, p_acumulada, width = 14, height = 8, dpi = 300)
 
@@ -3438,7 +3408,7 @@ cat("Corte ideal por cliente:", indice_maximo, "\n")
 
 ```{r chunk104}
 
-setwd(dir_experimento) #para R
+# setwd(dir_experimento) #para R
 
 #para VM
 write_yaml(PARAM, file = "PARAM.yml")
@@ -3456,60 +3426,6 @@ filas202104 <- nrow(dataset[foto_mes == 202104])
 
 print(paste("'tb_prediccion_ff' tiene", filas_prediccion_ff, "filas."))
 print(paste("'202104' tiene", filas202104, "filas."))
-```
-### Ganancias xseed @ best corte ensamble
-```{r}
-
-setwd(dir_experimento)
-cat("\n=== Identificando corte óptimo del ensemble ===\n")
-
-mejor_ganancia <- -Inf
-mejor_corte <- NA
-
-setorder(tb_prediccion_false_future, -prob)
-
-for(corte in PARAM$cortes) {
-  tb_prediccion_false_future[, Predicted := 0L]
-  tb_prediccion_false_future[1:corte, Predicted := 1L]
-  
-  res <- realidad_evaluar(drealidad, tb_prediccion_false_future)
-  
-  if(res$total > mejor_ganancia) {
-    mejor_ganancia <- res$total
-    mejor_corte <- corte
-  }
-}
-
-cat("Corte óptimo ensemble:", mejor_corte, "envíos\n")
-cat("Ganancia óptima ensemble:", format(mejor_ganancia, big.mark=","), "\n\n")
-
-cat("=== Calculando ganancias individuales por semilla ===\n")
-
-ganancias_por_semilla <- data.table(
-  semilla = integer(),
-  ganancia = numeric()
-)
-
-for(i in 1:length(PARAM$semillas)) {
-  archivo_pred <- paste0("prediccion_false_future_seed_", PARAM$semillas[i], ".txt")
-  tb_pred <- fread(archivo_pred)
-  
-  setorder(tb_pred, -prob)
-  tb_pred[, Predicted := 0L]
-  tb_pred[1:mejor_corte, Predicted := 1L]
-  
-  res <- realidad_evaluar(drealidad, tb_pred)
-  
-  ganancias_por_semilla <- rbind(ganancias_por_semilla,
-    data.table(semilla = PARAM$semillas[i], ganancia = res$total))
-  
-  cat("Semilla", PARAM$semillas[i], "- Ganancia:", format(res$total, big.mark=","), "\n")
-}
-
-archivo_salida <- paste0("ganancias_individuales_", PARAM$experimento, ".txt")
-fwrite(ganancias_por_semilla, file = archivo_salida, sep = "\t")
-
-cat("\n✓ Ganancias individuales guardadas en:", archivo_salida, "\n")
 ```
 
 ```{r chunk106}

@@ -3216,7 +3216,7 @@ setwd(dir_experimento) #para Rstudio
 # para VM
 
 nombre_archivo <- paste0("curva_ganancia_exp_", PARAM$experimento, ".png")
-ggsave(nombre_archivo, p, width = 10, height = 6, dpi = 300)
+ggsave(nombre_archivo, ptest, width = 10, height = 6, dpi = 300)
 
 
 ```
