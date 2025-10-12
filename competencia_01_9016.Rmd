@@ -7,14 +7,14 @@ output: html_document
 
 HT 
 dataset: fe123rank  (rank todas continuas)
-11 hiperparámetros (acortados)
+11 hiperparámetros 
 train 1,2,3
 0.2
-AUC = 
+AUC = 0,941
 
 
 final train 1, 2, 3
-dataset:  fe123rank agui (rank todas continuas )
+dataset:  fe123rank (toco mpayroll 202106 - aguinaldo)
 5 semillas
 
 future 06
@@ -1525,17 +1525,23 @@ dataset[foto_mes == 202106 & recibio_aguinaldo == 1,
 
 # PROPAGO RECIBIO AGUINALDO HACIA ATRAS
 
-# Primero: poner NA a todos los que NO están en 202106
-clientes_en_202106 <- dataset[foto_mes == 202106, unique(numero_de_cliente)]
-dataset[!(numero_de_cliente %in% clientes_en_202106), recibio_aguinaldo := NA_integer_]
 
-# 1. Clientes con 1 en 202106 → poner 1 en todos los meses
+# PROPAGO RECIBIO AGUINALDO HACIA ATRAS CORREGIDO
+
+# PROPAGO RECIBIO AGUINALDO HACIA ATRAS
+clientes_en_202106 <- dataset[foto_mes == 202106, unique(numero_de_cliente)]
+
+# Clientes NO en 202106 → poner 0 en todos los meses
+dataset[!(numero_de_cliente %in% clientes_en_202106), recibio_aguinaldo := 0L]
+
+# Clientes con 1 en 202106 → poner 1 en todos los meses
 clientes_con_1 <- dataset[foto_mes == 202106 & recibio_aguinaldo == 1, numero_de_cliente]
 dataset[numero_de_cliente %in% clientes_con_1, recibio_aguinaldo := 1]
 
-# 2. Clientes con 0 en 202106 → poner 0 en todos los meses
+# Clientes con 0 en 202106 → poner 0 en todos los meses
 clientes_con_0 <- dataset[foto_mes == 202106 & recibio_aguinaldo == 0, numero_de_cliente]
 dataset[numero_de_cliente %in% clientes_con_0, recibio_aguinaldo := 0]
+
 
 
 ```
@@ -2263,27 +2269,27 @@ Construyo el modelo final, que es uno solo, no hace ningun tipo de particion < t
 ## carpeta EXP 
 ```{r chunk64}
 
-setwd("/content/buckets/b1/exp")
-experimento <- paste0("exp", PARAM$experimento)
-dir.create(experimento, showWarnings= FALSE)
-setwd( paste0("/content/buckets/b1/exp/", experimento ))
-
-# # RStudio
-# dir_base <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos"
-# 
-# # Crear directorio base si no existe
-# dir.create(dir_base, showWarnings = FALSE, recursive = TRUE)
-# 
-# # Crear directorio del experimento
+# setwd("/content/buckets/b1/exp")
 # experimento <- paste0("exp", PARAM$experimento)
-# dir_experimento <- file.path(dir_base, experimento)
-# dir.create(dir_experimento, showWarnings = FALSE)
-# 
-# # Cambiar al directorio del experimento
-# setwd(dir_experimento)
-# 
-# # Verificar
-# cat("Directorio de trabajo:", getwd(), "\n")
+# dir.create(experimento, showWarnings= FALSE)
+# setwd( paste0("/content/buckets/b1/exp/", experimento ))
+
+# RStudio
+dir_base <- "C:/Users/Silvana/Documents/Maestria Exactas/DMEyF/competencia 1/experimentos"
+
+# Crear directorio base si no existe
+dir.create(dir_base, showWarnings = FALSE, recursive = TRUE)
+
+# Crear directorio del experimento
+experimento <- paste0("exp", PARAM$experimento)
+dir_experimento <- file.path(dir_base, experimento)
+dir.create(dir_experimento, showWarnings = FALSE)
+
+# Cambiar al directorio del experimento
+setwd(dir_experimento)
+
+# Verificar
+cat("Directorio de trabajo:", getwd(), "\n")
 ```
 
 ## Final Training Dataset
@@ -2293,7 +2299,7 @@ Aqui esta la gran decision de en qué meses hago el Final Training
 ```{r chunk65}
 
 
-dataset <- fread("https://storage.googleapis.com/silvanacontreras76_bukito3/datasets/competencia_01_fe123_rank_agui.csv.gz", stringsAsFactors= TRUE)
+dataset <- fread("https://storage.googleapis.com/silvanacontreras76_bukito3/datasets/competencia01_fe123_rank.csv.gz", stringsAsFactors= TRUE)
 
 
 ```
@@ -2325,7 +2331,7 @@ if(nrow(dataset[foto_mes == 202106]) != 164313) {
 ```
 
 ```{r chunk67}
-dim(dataset) #1143
+dim(dataset) #1140
 ```
 ### períodos
 ```{r chunk33}
@@ -2432,6 +2438,23 @@ PARAM$lgbm$param_fijos <-  list(
 )
 ```
 
+```{r}
+# EXP 9016 #16 so far auc = 0.9417
+
+PARAM$out$lgbm$mejores_hiperparametros <- list(
+  num_iterations = 2019,
+  learning_rate = 0.00825,
+  feature_fraction = 0.674,
+  num_leaves = 200,
+  min_data_in_leaf = 3,
+  max_depth = 19,
+  min_gain_to_split = 0.118,
+  lambda_l1 = 0.441,
+  lambda_l2 = 0.307,
+  bagging_fraction = 0.597,
+  bagging_freq = 3
+)
+```
 
 ```{r chunk61}
 # EXP HT 4940
@@ -2673,7 +2696,7 @@ Genero el modelo final, siempre sobre TODOS los datos de  final_train, sin hacer
 # ENTRENO RENOVADO CON DIRECTORIO Y GUARDANDO DE A 1
 
 # setwd( paste0("/content/buckets/b1/exp/", experimento ))
-# setwd(dir_experimento)
+setwd(dir_experimento)
 
 # Entreno ensamble mis semillas
 cat("Entrenando", length(PARAM$semillas), "modelos con diferentes semillas...\n")
@@ -2782,7 +2805,7 @@ tb_importancia <- as.data.table(lgb.importance(modelos_ensemble[[1]]))
 
 
 # # para VM
-# setwd(dir_experimento)
+setwd(dir_experimento)
 
 fwrite(tb_importancia,
   file = "impo.txt",
@@ -2894,7 +2917,7 @@ Aplico el modelo final a los datos del futuro
 ```{r chunk86}
 # # aplico el modelo a los datos sin clase
 
-# setwd(dir_experimento)
+setwd(dir_experimento)
 
 # Definir dfuture
 dfuture <- dataset[foto_mes %in% PARAM$future]
@@ -2931,7 +2954,7 @@ tb_prediccion <- dfuture[, list(numero_de_cliente, foto_mes)]
 tb_prediccion[, prob := prediccion]
 
 # guardar
-# setwd(dir_experimento)
+setwd(dir_experimento)
 
 # para VM
 fwrite(tb_prediccion,
@@ -2962,7 +2985,7 @@ print(paste("'202106' tiene", filas202106, "filas."))
 
 setorder(tb_prediccion, -prob)
 
-# setwd(dir_experimento) #para local R
+setwd(dir_experimento) #para local R
 
 # para VM
 dir.create("kaggle", showWarnings = FALSE)
@@ -3088,7 +3111,7 @@ length(PARAM$semillas), "modelos \n")
 tb_prediccion_false_future <- false_future[, list(numero_de_cliente, foto_mes)]
 tb_prediccion_false_future[, prob := prediccion_false_future]
 
-# setwd(dir_experimento)
+setwd(dir_experimento)
 # para VM
 fwrite(tb_prediccion_false_future,
   file = "prediccion_false_future.txt",
@@ -3113,7 +3136,7 @@ PARAM$cortes
 
 ```{r}
 
-# setwd(dir_experimento)  #PARA R LOCAL
+setwd(dir_experimento)  #PARA R LOCAL
 
 # Crear/abrir archivo para guardar
 test_ganancia_envios <- paste0("test_ganancia_envios_", PARAM$experimento, ".txt")
@@ -3188,7 +3211,7 @@ ptest <- ggplot(resultados_ganancia, aes(x = envios, y = ganancia_total)) +
 
 print(ptest)
 
-# setwd(dir_experimento) #para Rstudio
+setwd(dir_experimento) #para Rstudio
 
 # para VM
 
@@ -3263,7 +3286,8 @@ p_acumulada <- ggplot(tb_filtrada, aes(x = indice, y = ganancia_acumulada)) +
 print(p_acumulada)
 
 # Guardar
-# setwd(dir_experimento) #para R
+setwd(dir_experimento) #para R
+
 nombre_archivo_acum <- paste0("curva_ganancia_acumulada_exp_", PARAM$experimento, ".png")
 ggsave(nombre_archivo_acum, p_acumulada, width = 14, height = 8, dpi = 300)
 
