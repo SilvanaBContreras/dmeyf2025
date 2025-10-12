@@ -2086,6 +2086,7 @@ PARAM$out$lgbm$mejores_hiperparametros <- list(
    bagging_freq = 4
 )
 
+
 ```
 
 ```{r chunk75}
