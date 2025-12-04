@@ -1,4 +1,4 @@
-# 🌟 ¡Bienvenid@s! 🌟
+# ¡Bienvenid@s!
 
 Para reproducir los resultados de este "submit", por favor, lean las siguientes indicaciones.
 
@@ -22,7 +22,7 @@ Este archivo se encarga de **ensamblar** las predicciones provenientes de varios
 
 ## 2. Generar la Predicción de Cada Metamodelo
 
-Los archivos con el formato **`WFZ_R_número.ipynb`** son los *workflows* (flujos de trabajo) que generan cada una de las predicciones individuales que son luego ensambladas para obtener la predicción final.
+Los archivos con el formato **`WFZ_R_número.ipynb`** son los workflows que generan cada una de las predicciones individuales que son luego ensambladas para obtener la predicción final.
 
 > **ℹ️ Nota:** Intencionalmente se conservan celdas de código **comentadas** para documentar el trabajo y los experimentos explorados durante el desarrollo del proyecto.
 
